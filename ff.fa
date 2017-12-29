@@ -1,7 +1,8 @@
 
 ; Hello
 
-loop:   NOP         ; no-op
+        NOP         ; no-op
+loop:   NOP
 end:    HLT         ; stop the processor
         JMP loop    ; infinite loop
 ;        PUSHD #1

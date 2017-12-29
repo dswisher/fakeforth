@@ -116,8 +116,7 @@ char *skip_white(char *str)
 
 void add_byte(Context *context, char val)
 {
-    *(context->memory + context->origin) = val;
-    context->origin += 1;
+    context->memory[context->origin++] = val;
 }
 
 
@@ -139,10 +138,11 @@ Symbol *lookup_symbol(Context *context, char *name)
 Symbol *add_symbol(Context *context, char *name)
 {
     Symbol *symbol = malloc(sizeof(Symbol));
-    symbol->name = name;
+    symbol->name = strdup(name);
     symbol->location = 0;
-    symbol->next = NULL;
+    symbol->next = context->symbols;
     symbol->refs = NULL;
+    context->symbols = symbol;
     return symbol;
 }
 
@@ -229,6 +229,26 @@ int parse_line(char *str, Context *context)
 }
 
 
+void update_references(Context *context)
+{
+    printf("Updating references...\n");
+
+    Symbol *symbol;
+    SymbolRef *ref;
+    for (symbol = context->symbols; symbol != NULL; symbol = symbol->next)
+    {
+        char hi_byte = symbol->location >> 8;
+        char lo_byte = symbol->location & 0xFF;
+        // printf("Symbol: |%s|, location: 0x%04X, hi: %02X, lo: %02X\n", symbol->name, symbol->location, hi_byte, lo_byte);
+        for (ref = symbol->refs; ref != NULL; ref = ref->next)
+        {
+            context->memory[ref->location] = hi_byte;
+            context->memory[ref->location + 1] = lo_byte;
+        }
+    }
+}
+
+
 int assemble(FILE *in, FILE *out)
 {
     char str[MAXCHAR];
@@ -237,6 +257,7 @@ int assemble(FILE *in, FILE *out)
     context->origin = 0;
     context->symbols = NULL;
 
+    puts("Assembling...");
     while (fgets(str, MAXCHAR, in) != NULL)
     {
         if (!parse_line(str, context))
@@ -244,6 +265,8 @@ int assemble(FILE *in, FILE *out)
             return FALSE;
         }
     }
+
+    update_references(context);
 
     fwrite(context->memory, sizeof(char), context->origin, out);
 
