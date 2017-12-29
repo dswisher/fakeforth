@@ -2,3 +2,7 @@
 *.swp
 *.fo
 tags
+ffasm
+ffdasm
+ffsim
+ffdbg
