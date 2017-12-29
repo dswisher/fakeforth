@@ -1,0 +1,7 @@
+
+; Hello
+
+        NOP         ; no-op
+end:    HLT         ; stop the processor
+; foo:    JMP foo     ; infinite loop
+
