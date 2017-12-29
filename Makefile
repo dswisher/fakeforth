@@ -6,11 +6,12 @@ else
     detected_OS := $(shell uname -s)
 endif
 
-BINS=ffasm ffdasm ffsim ffdbg
+BINS=ffasm ffsim ffdbg
 
 CFLAGS=-g -rdynamic
 ifeq ($(detected_OS),Darwin)  # Mac OS X
 	CC=gcc-7
+	CFLAGS=
 endif
 
 
@@ -20,8 +21,6 @@ ff.fo: ff.fa ffasm
 	./ffasm ff.fa ff.fo
 
 ffasm: ffasm.c
-
-ffdasm: ffdasm.c
 
 ffsim: ffsim.c
 

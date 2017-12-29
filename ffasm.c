@@ -44,8 +44,6 @@ typedef struct Context
 
 Options *parse_args(int argc, char *argv[])
 {
-    printf("MEMSIZE: %d\n", MEMSIZE);
-
     if (argc < 3)
     {
         printf("Too few arguments!\n");
@@ -105,7 +103,7 @@ char *skip_label(char *str)
 }
 
 
-char *skipwhite(char *str)
+char *skip_white(char *str)
 {
     while (isspace(*str))
     {
@@ -215,7 +213,7 @@ int parse_line(char *str, Context *context)
         *str = '\0';
         str += 1;
     }
-    opcode = skipwhite(str);
+    opcode = skip_white(str);
 
     if (label != NULL)
     {
@@ -237,6 +235,7 @@ int assemble(FILE *in, FILE *out)
     Context *context = malloc(sizeof(Context));
     context->memory = malloc(MEMSIZE);
     context->origin = 0;
+    context->symbols = NULL;
 
     while (fgets(str, MAXCHAR, in) != NULL)
     {

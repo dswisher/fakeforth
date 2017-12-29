@@ -3,6 +3,6 @@
 *.fo
 tags
 ffasm
-ffdasm
 ffsim
 ffdbg
+.DS_Store
