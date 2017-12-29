@@ -8,6 +8,7 @@ endif
 
 BINS=ffasm ffdasm ffsim ffdbg
 
+CFLAGS=-g -rdynamic
 ifeq ($(detected_OS),Darwin)  # Mac OS X
 	CC=gcc-7
 endif
@@ -15,7 +16,7 @@ endif
 
 all: $(BINS) ff.fo
 
-ff.fo: ff.fa
+ff.fo: ff.fa ffasm
 	./ffasm ff.fa ff.fo
 
 ffasm: ffasm.c
@@ -25,6 +26,9 @@ ffdasm: ffdasm.c
 ffsim: ffsim.c
 
 ffdbg: ffdbg.c
+
+debug:
+	gdb --args ffasm ff.fa ff.fo
 
 clean:
 	rm -f $(BINS) *.o ff.fo

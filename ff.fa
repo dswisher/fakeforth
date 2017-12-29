@@ -1,7 +1,9 @@
 
 ; Hello
 
-        NOP         ; no-op
+loop:   NOP         ; no-op
 end:    HLT         ; stop the processor
-; foo:    JMP foo     ; infinite loop
+        JMP loop    ; infinite loop
+;        PUSHD #1
+;        LDA #0100
 
