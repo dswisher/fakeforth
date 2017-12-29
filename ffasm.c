@@ -15,6 +15,7 @@ typedef struct Options
 {
     char *infile;
     char *outfile;
+    char *mapfile;
 } Options;
 
 
@@ -44,17 +45,38 @@ typedef struct Context
 
 Options *parse_args(int argc, char *argv[])
 {
-    if (argc < 3)
+    if (argc != 2)
     {
-        printf("Too few arguments!\n");
-        printf("Usage: %s <infile> <outfile>\n", argv[0]);
+        printf("Incorrect number of arguments!\n");
+        printf("Usage: %s <infile>\n", argv[0]);
         return NULL;
     }
 
     Options *options = malloc(sizeof(Options));
 
-    options->infile = argv[1];
-    options->outfile = argv[2];
+    char scratch[MAXCHAR];
+    char *dot = strrchr(argv[1], '.');
+    if (dot == NULL)
+    {
+        strcpy(scratch, argv[1]);
+        strcat(scratch, ".fa");
+        options->infile = strdup(scratch);
+    }
+    else
+    {
+        options->infile = argv[1];
+    }
+
+    strcpy(scratch, options->infile);
+    dot = strrchr(scratch, '.');
+    *dot = 0;
+
+    strcat(scratch, ".fo");
+    options->outfile = strdup(scratch);
+
+    *dot = 0;
+    strcat(scratch, ".fd");
+    options->mapfile = strdup(scratch);
 
     return options;
 }

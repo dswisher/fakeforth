@@ -18,7 +18,7 @@ endif
 all: $(BINS) ff.fo
 
 ff.fo: ff.fa ffasm
-	./ffasm ff.fa ff.fo
+	./ffasm ff
 
 ffasm: ffasm.c
 
