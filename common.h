@@ -1,3 +1,5 @@
+#ifndef COMMON_H
+#define COMMON_H
 
 #define MAXCHAR 200
 
@@ -6,3 +8,4 @@
 
 typedef short bool;
 
+#endif

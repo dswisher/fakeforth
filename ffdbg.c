@@ -86,6 +86,8 @@ bool parse_and_execute_command(Simulator *sim, int argc, char *argv[])
         return TRUE;
     }
 
+    printf("Unknown command: `%s`.\n", argv[0]);
+
     return TRUE;
 }
 

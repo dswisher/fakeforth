@@ -1,7 +1,12 @@
 ## TODO ##
 
+* Handle assembler lines with a label but no opcode
+* Implement multi-line comments
 * Add line numbers to assembler errors
-* Write debug symbols to file
+* If a label is undefined, issue an error.
+* If a label is duplicated, issue an error.
+* Write debug symbols to a file
+* Write map (human readable assembled output) to a file
 * Change Makefile to compile common .c files to .o files once rather than for each binary
 
 

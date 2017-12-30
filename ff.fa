@@ -1,10 +1,14 @@
 
-; Hello
+_start:
+        LDIP cold_start         ; set the IP to a reference to QUIT
+        JMP next
 
-        NOP         ; no-op
-loop:   NOP
-end:    HLT         ; stop the processor
-        JMP loop    ; infinite loop
-;        PUSHD #1
-;        LDA #0100
+cold_start:                     ; colon-word w/o a header
+        .int QUIT
+
+
+; ------------------
+; Inner interpreter
+; ------------------
+next:   HLT         ; TODO
 

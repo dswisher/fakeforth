@@ -1,6 +1,8 @@
 #ifndef SIMULATOR_H
 #define SIMULATOR_H
 
+#include "common.h"
+
 #define MEMSIZE 1<<16
 
 typedef struct Simulator
@@ -9,6 +11,9 @@ typedef struct Simulator
 
     // Registers and the like
     unsigned short pc;
+
+    // Simulation state
+    bool halted;
 } Simulator;
 
 Simulator *sim_init(char *objfile);

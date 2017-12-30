@@ -6,6 +6,7 @@
 
 #include "common.h"
 #include "simulator.h"
+#include "opcodes.h"
 
 
 typedef struct Options
@@ -192,15 +193,15 @@ bool parse_opcode(char *opcode, Context *context)
 
     if (!strcmp(opcode, "NOP"))
     {
-        add_byte(context, 0x01);
+        add_byte(context, OP_NOP);
     }
     else if (!strcmp(opcode, "HLT"))
     {
-        add_byte(context, 0xFF);
+        add_byte(context, OP_HLT);
     }
     else if (!strcmp(opcode, "JMP"))
     {
-        add_byte(context, 0x02);
+        add_byte(context, OP_JMP);
         add_label_ref(context, arg);
         add_byte(context, 0xEE);
         add_byte(context, 0xEE);

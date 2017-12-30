@@ -3,6 +3,8 @@
 #include <stdio.h>
 
 #include "simulator.h"
+#include "opcodes.h"
+
 
 Simulator *sim_init(char *objfile)
 {
@@ -16,6 +18,7 @@ Simulator *sim_init(char *objfile)
     Simulator *sim = malloc(sizeof(Simulator));
     sim->memory = malloc(MEMSIZE);
     sim->pc = 0;
+    sim->halted = FALSE;
 
     unsigned short len;
     fread(&len, sizeof(len), 1, file);
@@ -36,15 +39,42 @@ void sim_load_symbols(Simulator *sim, char *symfile)
 
 void sim_run(Simulator *sim)
 {
-    printf("sim_run is not yet implemented!\n");
-    // TODO
+    while (!sim->halted)
+    {
+        sim_step(sim);
+
+        // TODO - check to see if we've hit a breakpoint
+    }
 }
 
 
 void sim_step(Simulator *sim)
 {
-    printf("sim_step is not yet implemented!\n");
-    // TODO
+    if (sim->halted)
+    {
+        printf("CPU is in halt state.\n");
+        return;
+    }
+
+    unsigned short loc = sim->pc;
+    unsigned char opcode = sim->memory[sim->pc++];
+
+    switch (opcode)
+    {
+        case OP_NOP:
+            break;
+
+        case OP_HLT:
+            printf("HLT at 0x%04X\n", loc);
+            sim->halted = TRUE;
+            sim->pc--;
+            break;
+
+        default:
+            printf("Illegal opcode 0x%02X at 0x%04X\n", opcode, loc);
+            sim->halted = TRUE;
+            break;
+    }
 }
 
 
