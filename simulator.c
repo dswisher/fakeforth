@@ -1,6 +1,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "simulator.h"
 #include "opcodes.h"
@@ -20,6 +21,8 @@ Simulator *sim_init(char *objfile)
     sim->pc = 0x0000;
     sim->ip = 0xFFFF;
     sim->halted = FALSE;
+    sim->num_symbols = 0;
+    sim->symbols = NULL;
 
     unsigned short len;
     fread(&len, sizeof(len), 1, file);
@@ -31,10 +34,32 @@ Simulator *sim_init(char *objfile)
 }
 
 
-void sim_load_symbols(Simulator *sim, char *symfile)
+void sim_load_symbols(Simulator *sim, char *symname)
 {
-    printf("sim_load_symbols is not yet implemented!\n");
-    // TODO
+    char str[MAXCHAR];
+    FILE *symfile = fopen(symname, "r");
+    if (symfile == NULL)
+    {
+        return;
+    }
+
+    int num = atoi(fgets(str, MAXCHAR, symfile));
+    sim->symbols = malloc(num * sizeof(SimSymbol));
+    while (fgets(str, MAXCHAR, symfile) != NULL)
+    {
+        str[4] = '\0';
+        unsigned short loc = strtol(str, NULL, 16);
+        char *sym = str + 5;
+        char *pos = strchr(sym, '\n');
+        *pos = 0;
+
+        SimSymbol *entry = malloc(sizeof(SimSymbol));
+        entry->name = strdup(sym);
+        entry->location = loc;
+
+        sim->symbols[sim->num_symbols++] = entry;
+    }
+    fclose(symfile);
 }
 
 
@@ -104,10 +129,28 @@ void sim_step(Simulator *sim)
 }
 
 
+char pretty_buff[MAXCHAR];
+char *lookup_pretty_symbol_by_address(Simulator *sim, unsigned short addr)
+{
+    int i;
+    *pretty_buff = 0;
+    for (i = 0; i < sim->num_symbols; i++)
+    {
+        if (sim->symbols[i]->location == addr)
+        {
+            sprintf(pretty_buff, " (%s)", sim->symbols[i]->name);
+            break;
+        }
+    }
+
+    return pretty_buff;
+}
+
+
 void sim_print(Simulator *sim)
 {
-    printf("PC: 0x%04X\n", sim->pc);
-    printf("IP: 0x%04X\n", sim->ip);
+    printf("PC: 0x%04X%s\n", sim->pc, lookup_pretty_symbol_by_address(sim, sim->pc));
+    printf("IP: 0x%04X%s\n", sim->ip, lookup_pretty_symbol_by_address(sim, sim->ip));
 }
 
 

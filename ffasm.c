@@ -42,6 +42,7 @@ typedef struct Context
     char *memory;
     unsigned short origin;
     Symbol *symbols;    // linked list of symbols
+    int num_symbols;
     int line_number;
 } Context;
 
@@ -178,6 +179,7 @@ Symbol *add_symbol(Context *context, char *name)
     symbol->next = context->symbols;
     symbol->refs = NULL;
     context->symbols = symbol;
+    context->num_symbols++;
     return symbol;
 }
 
@@ -374,6 +376,7 @@ bool assemble(FILE *in, Options *options)
     context->memory = malloc(MEMSIZE);
     context->origin = 0;
     context->symbols = NULL;
+    context->num_symbols = 0;
     context->line_number = 0;
 
     puts("Assembling...");
@@ -413,6 +416,7 @@ bool assemble(FILE *in, Options *options)
             printf("Could not open symbol file: %s\n", options->symfile);
             return FALSE;
         }
+        fprintf(symfile, "%d\n", context->num_symbols);
         Symbol *symbol;
         for (symbol = context->symbols; symbol != NULL; symbol = symbol->next)
         {

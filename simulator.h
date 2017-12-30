@@ -5,6 +5,13 @@
 
 #define MEMSIZE 1<<16
 
+typedef struct SimSymbol
+{
+    char *name;
+    unsigned short location;
+} SimSymbol;
+
+
 typedef struct Simulator
 {
     char *memory;
@@ -15,6 +22,10 @@ typedef struct Simulator
 
     // Simulation state
     bool halted;
+
+    // Symbols
+    int num_symbols;
+    SimSymbol **symbols;
 } Simulator;
 
 Simulator *sim_init(char *objfile);

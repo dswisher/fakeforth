@@ -43,7 +43,7 @@ Options *parse_args(int argc, char *argv[])
     dot = strrchr(scratch, '.');
     *dot = 0;
 
-    strcat(scratch, ".fsym");
+    strcat(scratch, ".sym");
     options->symfile = strdup(scratch);
 
     return options;
