@@ -17,7 +17,7 @@ typedef struct Options
 {
     char *infile;
     char *outfile;
-    char *mapfile;
+    char *symfile;
 } Options;
 
 
@@ -78,8 +78,8 @@ Options *parse_args(int argc, char *argv[])
     options->outfile = strdup(scratch);
 
     *dot = 0;
-    strcat(scratch, ".fd");
-    options->mapfile = strdup(scratch);
+    strcat(scratch, ".sym");
+    options->symfile = strdup(scratch);
 
     return options;
 }
@@ -367,7 +367,7 @@ bool update_references(Context *context)
 }
 
 
-bool assemble(FILE *in, FILE *out)
+bool assemble(FILE *in, Options *options)
 {
     char str[MAXCHAR];
     Context *context = malloc(sizeof(Context));
@@ -391,8 +391,35 @@ bool assemble(FILE *in, FILE *out)
         return FALSE;
     }
 
-    fwrite(&(context->origin), sizeof(context->origin), 1, out);
-    fwrite(context->memory, sizeof(char), context->origin, out);
+    // Write the binary image
+    FILE *outfile = fopen(options->outfile, "wb");
+    if (outfile == NULL)
+    {
+        printf("Could not open output file: %s\n", options->outfile);
+        return FALSE;
+    }
+
+    fwrite(&(context->origin), sizeof(context->origin), 1, outfile);
+    fwrite(context->memory, sizeof(char), context->origin, outfile);
+
+    fclose(outfile);
+
+    // Write the symbols (if we have any)
+    if (context->symbols != NULL)
+    {
+        FILE *symfile = fopen(options->symfile, "w");
+        if (symfile == NULL)
+        {
+            printf("Could not open symbol file: %s\n", options->symfile);
+            return FALSE;
+        }
+        Symbol *symbol;
+        for (symbol = context->symbols; symbol != NULL; symbol = symbol->next)
+        {
+            fprintf(symfile, "%04X %s\n", symbol->location, symbol->name);
+        }
+        fclose(symfile);
+    }
 
     return TRUE;
 }
@@ -413,17 +440,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    FILE *outfile = fopen(options->outfile, "wb");
-    if (outfile == NULL)
-    {
-        printf("Could not open output file: %s\n", options->outfile);
-        return 1;
-    }
-
-    int ok = assemble(infile, outfile);
+    int ok = assemble(infile, options);
 
     fclose(infile);
-    fclose(outfile);
 
     if (!ok)
     {

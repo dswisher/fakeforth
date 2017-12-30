@@ -7,7 +7,7 @@ else
 endif
 
 BINS=ffasm ffsim ffdbg
-INCLUDES=common.h simulator.h
+INCLUDES=common.h simulator.h opcodes.h
 
 CFLAGS=-g -rdynamic
 ifeq ($(detected_OS),Darwin)  # Mac OS X
@@ -21,15 +21,21 @@ all: $(BINS) ff.fo
 ff.fo: ff.fa ffasm
 	./ffasm ff
 
-ffasm: ffasm.c opcodes.c $(INCLUDES)
+ffasm: ffasm.c opcodes.c
 
-ffsim: ffsim.c simulator.c $(INCLUDES)
+ffsim: ffsim.c simulator.c
 
-ffdbg: ffdbg.c simulator.c $(INCLUDES)
+ffdbg: ffdbg.c simulator.c
+
+ffasm.c: $(INCLUDES)
+
+ffsim.c: $(INCLUDES)
+
+ffdbg.c: $(INCLUDES)
 
 debug:
 	gdb --args ffasm ff.fa ff.fo
 
 clean:
-	rm -f $(BINS) *.o ff.fo
+	rm -f $(BINS) *.o ff.fo ff.sym
 
