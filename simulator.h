@@ -10,7 +10,8 @@ typedef struct Simulator
     char *memory;
 
     // Registers and the like
-    unsigned short pc;
+    unsigned short pc;      // program counter
+    unsigned short ip;      // instruction pointer
 
     // Simulation state
     bool halted;

@@ -17,7 +17,8 @@ Simulator *sim_init(char *objfile)
 
     Simulator *sim = malloc(sizeof(Simulator));
     sim->memory = malloc(MEMSIZE);
-    sim->pc = 0;
+    sim->pc = 0x0000;
+    sim->ip = 0xFFFF;
     sim->halted = FALSE;
 
     unsigned short len;
@@ -58,6 +59,9 @@ void sim_step(Simulator *sim)
 
     unsigned short loc = sim->pc;
     unsigned char opcode = sim->memory[sim->pc++];
+    unsigned char reg;
+    unsigned char hi_byte;
+    unsigned char lo_byte;
 
     switch (opcode)
     {
@@ -68,6 +72,28 @@ void sim_step(Simulator *sim)
             printf("HLT at 0x%04X\n", loc);
             sim->halted = TRUE;
             sim->pc--;
+            break;
+
+        case OP_JMP:
+            hi_byte = sim->memory[sim->pc];
+            lo_byte = sim->memory[sim->pc + 1];
+            sim->pc = (hi_byte << 8) + lo_byte;
+            break;
+
+        case OP_LOAD:
+            reg = sim->memory[sim->pc++];
+            hi_byte = sim->memory[sim->pc++];
+            lo_byte = sim->memory[sim->pc++];
+            switch (reg)
+            {
+                case REG_IP:
+                    sim->ip = (hi_byte << 8) + lo_byte;
+                    break;
+
+                default:
+                    printf("Illegal register 0x%02X at 0x%04X\n", reg, loc);
+                    sim->halted = TRUE;
+            }
             break;
 
         default:
@@ -81,6 +107,7 @@ void sim_step(Simulator *sim)
 void sim_print(Simulator *sim)
 {
     printf("PC: 0x%04X\n", sim->pc);
+    printf("IP: 0x%04X\n", sim->ip);
 }
 
 

@@ -21,7 +21,7 @@ all: $(BINS) ff.fo
 ff.fo: ff.fa ffasm
 	./ffasm ff
 
-ffasm: ffasm.c $(INCLUDES)
+ffasm: ffasm.c opcodes.c $(INCLUDES)
 
 ffsim: ffsim.c simulator.c $(INCLUDES)
 

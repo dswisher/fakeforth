@@ -3,10 +3,14 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "common.h"
 #include "simulator.h"
 #include "opcodes.h"
+
+
+#define SEPS " \t,"
 
 
 typedef struct Options
@@ -38,6 +42,7 @@ typedef struct Context
     char *memory;
     unsigned short origin;
     Symbol *symbols;    // linked list of symbols
+    int line_number;
 } Context;
 
 
@@ -110,6 +115,16 @@ void strip_comments(char *str)
 }
 
 
+void print_error(Context *context, char *format, ...)
+{
+    va_list(args);
+    printf("line %d: ", context->line_number);
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+}
+
+
 char *skip_label(char *str)
 {
     char *word = str;
@@ -159,7 +174,7 @@ Symbol *add_symbol(Context *context, char *name)
 {
     Symbol *symbol = malloc(sizeof(Symbol));
     symbol->name = strdup(name);
-    symbol->location = 0;
+    symbol->location = 0xFFFF;
     symbol->next = context->symbols;
     symbol->refs = NULL;
     context->symbols = symbol;
@@ -179,37 +194,105 @@ void add_label_ref(Context *context, char *name)
     ref->location = context->origin;
     ref->next = symbol->refs;
     symbol->refs = ref;
+
+    add_byte(context, 0xFF);
+    add_byte(context, 0xFF);
+}
+
+
+bool parse_pseudo(Context *context, int argc, char *argv[])
+{
+    if (!strcmp(argv[0], ".word"))
+    {
+        // TODO - handle both labels and immediate values
+        add_label_ref(context, argv[1]);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+
+bool need_args(Context *context, int num, int argc, char *argv[], char *opcode)
+{
+    if (num != argc - 1)
+    {
+        print_error(context, "Malformed %s: |%s|\n", argv[0], opcode);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+
+bool add_register(Context *context, char *name)
+{
+    if (!strcmp(name, "IP"))
+    {
+        add_byte(context, REG_IP);
+        return TRUE;
+    }
+
+    print_error(context, "Unknown register: |%s|\n", name);
+    return FALSE;
 }
 
 
 bool parse_opcode(char *opcode, Context *context)
 {
-    char *arg;
-    if ((arg = strchr(opcode, ' ')) != NULL)
+    char buf[MAXCHAR];
+    char *argv[MAXARGS];
+    int argc = 0;
+    strcpy(buf, opcode);
+    char *token = strtok(buf, SEPS);
+    while(token)
     {
-        *arg = 0;
-        arg += 1;
+        argv[argc++] = token;
+        token = strtok(NULL, SEPS);
     }
 
-    if (!strcmp(opcode, "NOP"))
+    if (argc == 0)
     {
-        add_byte(context, OP_NOP);
-    }
-    else if (!strcmp(opcode, "HLT"))
-    {
-        add_byte(context, OP_HLT);
-    }
-    else if (!strcmp(opcode, "JMP"))
-    {
-        add_byte(context, OP_JMP);
-        add_label_ref(context, arg);
-        add_byte(context, 0xEE);
-        add_byte(context, 0xEE);
-    }
-    else
-    {
-        printf("Unknown opcode: |%s|\n", opcode);
+        // How can this happen?
+        printf("Malformed opcode: |%s|\n", opcode);
         return FALSE;
+    }
+
+    if (parse_pseudo(context, argc, argv))
+    {
+        return TRUE;
+    }
+
+    unsigned short code = op_name_to_code(argv[0]);
+    if (code == 0)
+    {
+        print_error(context, "Unknown opcode: |%s|\n", argv[0]);
+        return FALSE;
+    }
+
+    add_byte(context, code);
+
+    switch (code)
+    {
+        case OP_JMP:
+            if (!need_args(context, 1, argc, argv, opcode))
+            {
+                return FALSE;
+            }
+            add_label_ref(context, argv[1]);
+            break;
+
+        case OP_LOAD:
+            if (!need_args(context, 2, argc, argv, opcode))
+            {
+                return FALSE;
+            }
+            if (!add_register(context, argv[1]))
+            {
+                return FALSE;
+            }
+            add_label_ref(context, argv[2]);
+            break;
     }
 
     return TRUE;
@@ -245,27 +328,42 @@ bool parse_line(char *str, Context *context)
         symbol->location = context->origin;
     }
 
+    if (*opcode == 0)
+    {
+        return TRUE;
+    }
+
     return parse_opcode(opcode, context);
 }
 
 
-void update_references(Context *context)
+bool update_references(Context *context)
 {
     printf("Updating references...\n");
 
+    bool ok = TRUE;
     Symbol *symbol;
     SymbolRef *ref;
     for (symbol = context->symbols; symbol != NULL; symbol = symbol->next)
     {
+        if (symbol->refs != NULL && symbol->location == 0xFFFF)
+        {
+            // TODO - extract the line number(s) from the refs
+            printf("Undefined symbol: %s\n", symbol->name);
+            ok = FALSE;
+            continue;
+        }
+
         char hi_byte = symbol->location >> 8;
         char lo_byte = symbol->location & 0xFF;
-        // printf("Symbol: |%s|, location: 0x%04X, hi: %02X, lo: %02X\n", symbol->name, symbol->location, hi_byte, lo_byte);
         for (ref = symbol->refs; ref != NULL; ref = ref->next)
         {
             context->memory[ref->location] = hi_byte;
             context->memory[ref->location + 1] = lo_byte;
         }
     }
+
+    return ok;
 }
 
 
@@ -276,17 +374,22 @@ bool assemble(FILE *in, FILE *out)
     context->memory = malloc(MEMSIZE);
     context->origin = 0;
     context->symbols = NULL;
+    context->line_number = 0;
 
     puts("Assembling...");
     while (fgets(str, MAXCHAR, in) != NULL)
     {
+        context->line_number += 1;
         if (!parse_line(str, context))
         {
             return FALSE;
         }
     }
 
-    update_references(context);
+    if (!update_references(context))
+    {
+        return FALSE;
+    }
 
     fwrite(&(context->origin), sizeof(context->origin), 1, out);
     fwrite(context->memory, sizeof(char), context->origin, out);

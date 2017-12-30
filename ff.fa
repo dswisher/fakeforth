@@ -1,14 +1,21 @@
 
 _start:
-        LDIP cold_start         ; set the IP to a reference to QUIT
+        LOAD IP,cold_start      ; set the IP to a reference to QUIT
         JMP next
 
 cold_start:                     ; colon-word w/o a header
-        .int QUIT
+        .word QUIT
 
 
 ; ------------------
 ; Inner interpreter
 ; ------------------
-next:   HLT         ; TODO
+next:   HLT                     ; TODO
+
+
+; ------------------
+; Built-in Words
+; ------------------
+
+QUIT:   .word QUIT              ; TODO
 

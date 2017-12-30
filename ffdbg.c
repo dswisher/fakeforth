@@ -6,7 +6,6 @@
 #include "common.h"
 #include "simulator.h"
 
-#define MAXARGS 20
 #define SEPS " \t\n"
 
 typedef struct Options
@@ -94,7 +93,7 @@ bool parse_and_execute_command(Simulator *sim, int argc, char *argv[])
 
 bool execute_command(Simulator *sim)
 {
-    fputs("(ffdbg) ", stdout);
+    printf("0x%04X: ", sim->pc);
     char buf[MAXCHAR];
     char *args[MAXARGS];
     if (fgets(buf, MAXCHAR, stdin) == NULL)
