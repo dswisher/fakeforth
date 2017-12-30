@@ -2,6 +2,7 @@
 
 * Add line numbers to assembler errors
 * Write debug symbols to file
+* Change Makefile to compile common .c files to .o files once rather than for each binary
 
 
 ## DONE ##

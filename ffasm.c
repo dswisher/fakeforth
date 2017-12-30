@@ -4,11 +4,8 @@
 #include <ctype.h>
 #include <string.h>
 
-
-#define TRUE 1
-#define FALSE 0
-#define MAXCHAR 200     // Max length of one line
-#define MEMSIZE 1<<16   // TODO - move out to common header
+#include "common.h"
+#include "simulator.h"
 
 
 typedef struct Options
@@ -21,7 +18,7 @@ typedef struct Options
 
 typedef struct SymbolRef
 {
-    int location;
+    unsigned short location;
     struct SymbolRef *next;
 } SymbolRef;
 
@@ -29,7 +26,7 @@ typedef struct SymbolRef
 typedef struct Symbol
 {
     char *name;
-    int location;
+    unsigned short location;
     struct Symbol *next;
     SymbolRef *refs;
 } Symbol;
@@ -38,7 +35,7 @@ typedef struct Symbol
 typedef struct Context
 {
     char *memory;
-    int origin;
+    unsigned short origin;
     Symbol *symbols;    // linked list of symbols
 } Context;
 
@@ -184,7 +181,7 @@ void add_label_ref(Context *context, char *name)
 }
 
 
-int parse_opcode(char *opcode, Context *context)
+bool parse_opcode(char *opcode, Context *context)
 {
     char *arg;
     if ((arg = strchr(opcode, ' ')) != NULL)
@@ -218,7 +215,7 @@ int parse_opcode(char *opcode, Context *context)
 }
 
 
-int parse_line(char *str, Context *context)
+bool parse_line(char *str, Context *context)
 {
     strip_comments(str);
     if (strlen(str) == 0)
@@ -271,7 +268,7 @@ void update_references(Context *context)
 }
 
 
-int assemble(FILE *in, FILE *out)
+bool assemble(FILE *in, FILE *out)
 {
     char str[MAXCHAR];
     Context *context = malloc(sizeof(Context));
@@ -290,6 +287,7 @@ int assemble(FILE *in, FILE *out)
 
     update_references(context);
 
+    fwrite(&(context->origin), sizeof(context->origin), 1, out);
     fwrite(context->memory, sizeof(char), context->origin, out);
 
     return TRUE;
