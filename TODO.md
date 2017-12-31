@@ -1,10 +1,13 @@
 ## TODO ##
 
 * Debugger:
-  * read symbols and use them
-  * implement disassembly (list) command
-  * clean up command handling (use a lookup table or some such)
+  * Implement a memory dump word (just dump bytes, w/o trying to disassemble; include ascii)
+  * Implement a word to dump a Forth dictionary entry
+  * Allow labels to be pushed onto the stack; perhaps with a way to quote them (so "next" can be used as a label, too)
+  * Allow numbers to be pushed onto the stack
+  * Implement simple arithmetic
 * Assembler:
+  * Write pseudo to create Forth dictionary header
   * Write map (human readable assembled output) to a file
   * If a label is duplicated, issue an error
   * Implement multi-line comments
@@ -13,6 +16,10 @@
 
 ## DONE ##
 
+* Debugger:
+  * ~~read symbols and use them~~
+  * ~~implement disassembly (list) command~~
+  * ~~clean up command handling (use a lookup table or some such)~~
 * Assembler:
   * ~~Write symbols to a file~~
   * ~~If a label is undefined, issue an error~~
