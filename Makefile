@@ -9,10 +9,12 @@ endif
 BINS=ffasm ffsim ffdbg
 INCLUDES=common.h simulator.h opcodes.h
 
-CFLAGS=-g -rdynamic
+CFLAGS=-g -rdynamic -Wall -DUSE_READLINE
+LDLIBS=-lreadline
 ifeq ($(detected_OS),Darwin)  # Mac OS X
 	CC=gcc-7
 	CFLAGS=
+	LDLIBS=
 endif
 
 
@@ -21,11 +23,11 @@ all: $(BINS) ff.fo
 ff.fo: ff.fa ffasm
 	./ffasm ff
 
-ffasm: ffasm.c opcodes.c
+ffasm: ffasm.o opcodes.o
 
-ffsim: ffsim.c simulator.c opcodes.c
+ffsim: ffsim.o simulator.o opcodes.o
 
-ffdbg: ffdbg.c simulator.c opcodes.c
+ffdbg: ffdbg.o simulator.o opcodes.o
 
 ffasm.c: $(INCLUDES)
 

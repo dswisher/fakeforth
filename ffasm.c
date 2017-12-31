@@ -128,8 +128,6 @@ void print_error(Context *context, char *format, ...)
 
 char *skip_label(char *str)
 {
-    char *word = str;
-
     while (!isspace(*str) && *str != ':')
     {
         str += 1;
@@ -160,6 +158,14 @@ void add_word(Context *context, unsigned short val)
 {
     add_byte(context, val >> 8);
     add_byte(context, val & 0xFF);
+}
+
+
+void add_literal(Context *context, char *literal)
+{
+    literal++;      // skip $
+    unsigned short word = strtol(literal, NULL, 16);
+    add_word(context, word);
 }
 
 
@@ -226,7 +232,7 @@ bool parse_pseudo(Context *context, int argc, char *argv[])
     {
         if (argv[1][0] == '$')
         {
-            add_word(context, atoi(&(argv[1][1])));
+            add_literal(context, argv[1]);
         }
         else
         {
@@ -274,6 +280,12 @@ bool add_register(Context *context, char *name)
     if (!strcmp(name, "IP"))
     {
         add_byte(context, REG_IP);
+        return TRUE;
+    }
+
+    if (!strcmp(name, "X"))
+    {
+        add_byte(context, REG_X);
         return TRUE;
     }
 
@@ -335,7 +347,14 @@ bool parse_opcode(char *opcode, Context *context)
             {
                 return FALSE;
             }
-            add_label_ref(context, argv[2]);
+            if (argv[2][0] == '$')
+            {
+                add_literal(context, argv[2]);
+            }
+            else
+            {
+                add_label_ref(context, argv[2]);
+            }
             break;
     }
 
@@ -494,5 +513,7 @@ int main(int argc, char *argv[])
     {
         printf("Assembly FAILED.\n");
     }
+
+    return 0;
 }
 

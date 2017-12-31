@@ -1,6 +1,9 @@
 ## TODO ##
 
 * Debugger:
+  * Improve readline integration
+    * Save/restore history
+    * Links: [docs](http://www.delorie.com/gnu/docs/readline/rlman_23.html) - [hist](https://tiswww.cwru.edu/php/chet/readline/history.html#SEC10) - [sample1](https://eli.thegreenplace.net/2016/basics-of-using-the-readline-library/)
   * Implement word to non-destructively print the data stack
   * Implement word to non-destructively print the return stack
   * Implement word to find a dictionary entry (HOW to put a STRING on the debugger STACK?)

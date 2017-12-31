@@ -19,6 +19,7 @@ typedef struct Simulator
     // Registers and the like
     unsigned short pc;      // program counter
     unsigned short ip;      // instruction pointer
+    unsigned short x;       // scratch register
 
     // Simulation state
     bool halted;

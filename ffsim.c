@@ -54,5 +54,7 @@ int main(int argc, char *argv[])
     Simulator *sim = sim_init(options->infile);
 
     sim_run(sim);
+
+    return 0;
 }
 

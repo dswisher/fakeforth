@@ -115,6 +115,10 @@ void sim_step(Simulator *sim)
                     sim->ip = (hi_byte << 8) + lo_byte;
                     break;
 
+                case REG_X:
+                    sim->x = (hi_byte << 8) + lo_byte;
+                    break;
+
                 default:
                     printf("Illegal register 0x%02X at 0x%04X\n", reg, loc);
                     sim->halted = TRUE;
@@ -154,6 +158,10 @@ void disassemble_register(Simulator *sim, char *buf, unsigned short *addr)
             strcat(buf, " IP");
             break;
 
+        case REG_X:
+            strcat(buf, " X");
+            break;
+
         default:
             strcat(buf, " ??");
             break;
@@ -161,7 +169,7 @@ void disassemble_register(Simulator *sim, char *buf, unsigned short *addr)
 }
 
 
-char *format_addr(unsigned char addr)
+char *format_addr(unsigned short addr)
 {
     static char scratch[7];
     sprintf(scratch, "0x%04X", addr);

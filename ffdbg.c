@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef USE_READLINE
+#include <readline/readline.h>
+#include <readline/history.h>
+#endif
+
 #include "common.h"
 #include "simulator.h"
 
@@ -95,14 +100,23 @@ DebugCommand *find_command(Context *context, char *name)
 
 bool execute_command(Context *context)
 {
-    printf("0x%04X: ", context->sim->pc);
     char buf[MAXCHAR];
+    sprintf(buf, "0x%04X: ", context->sim->pc);
     char *args[MAXARGS];
+
+#ifdef USE_READLINE
+    // TODO - buffer overflow!
+    char *line = readline("enter text>");
+    strcpy(buf, line);
+    free(line);
+#else
+    fputs(buf, stdout);
     if (fgets(buf, MAXCHAR, stdin) == NULL)
     {
         // ignore blank lines
         return TRUE;
     }
+#endif
 
     int num = 0;
     char *token = strtok(buf, SEPS);
@@ -177,7 +191,13 @@ void dc_push_ip(Context *context)
 }
 
 
-void dc_print(Context *context)
+void dc_push_x(Context *context)
+{
+    do_push(context, context->sim->x);
+}
+
+
+void dc_dot(Context *context)
 {
     unsigned short value = do_pop(context);
     char *symbol = sim_lookup_symbol(context->sim, value);
@@ -224,6 +244,18 @@ void dc_quit(Context *context)
 }
 
 
+void dc_print(Context *context)
+{
+    Simulator *sim = context->sim;
+
+    printf("    PC: 0x%04X   IP: 0x%04X\n", sim->pc, sim->ip);
+    printf("     X: 0x%04X\n", sim->x);
+    puts("");
+    // TODO
+    sim_disassemble(sim, sim->pc, 3);
+}
+
+
 void add_command(Context *context, char *name, void (*func)(Context *context))
 {
     DebugCommand *command = malloc(sizeof(DebugCommand));
@@ -244,7 +276,8 @@ Context *create_context(Simulator *sim)
 
     add_command(context, "pc", dc_push_pc);
     add_command(context, "ip", dc_push_ip);
-    add_command(context, ".", dc_print);
+    add_command(context, "x", dc_push_x);
+    add_command(context, ".", dc_dot);
     add_command(context, "quit", dc_quit);
     add_command(context, "q", dc_quit);
     add_command(context, "n", dc_next);
@@ -252,6 +285,8 @@ Context *create_context(Simulator *sim)
     add_command(context, "run", dc_run);
     add_command(context, "list", dc_list);
     add_command(context, "l", dc_list);
+    add_command(context, "p", dc_print);
+    add_command(context, "pring", dc_print);
 
     // TODO - help
     // TODO - set/clear breakpoint
@@ -270,6 +305,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+#ifdef USE_READLINE
+    rl_read_init_file("/home/swish/.inputrc");
+#endif
+
     Simulator *sim = sim_init(options->infile);
     sim_load_symbols(sim, options->symfile);
 
@@ -279,6 +318,6 @@ int main(int argc, char *argv[])
     {
     }
 
-    // TODO - prompt for commands and run 'em
+    return 0;
 }
 

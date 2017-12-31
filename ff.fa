@@ -1,13 +1,25 @@
 
 _start:
-        LOAD IP,cold_start      ; set the IP to a reference to QUIT
+        LOAD X, $DAD    ; HACK! Random stuff on the stack to test DUP
+        ; DPUSH X         ; ...more HACK...
+
+        LOAD IP, cold_start     ; set the IP to a reference to QUIT
         JMP next
 
 
 ; ------------------
-; Inner interpreter
+; DOCOL - execute a high-level word
+;    IP - points to the word after the one we're about to execute
+;    CA - points to the codeword of the word we're about to execute
+;
+;   %esi -> IP
+;   %eax -> CA
 ; ------------------
-DOCOL:  HLT                     ; TODO
+DOCOL:  ; RPUSH IP                ; We're nesting down, so save the IP for when we're done
+        ; ADDI CA, $2
+        HLT
+
+
 next:   HLT                     ; TODO
 
 
@@ -18,11 +30,33 @@ next:   HLT                     ; TODO
 cold_start:                     ; colon-word w/o a header
         .word QUIT
 
+
 ; --- QUIT
 QUIT_head:
         .word $0                ; link to previous word (none, in this case)
         .byte $4                ; length of word - TODO - flags?
         .ascii "QUIT"
 QUIT:   .word DOCOL             ; codeword - the interpreter
-        ; TODO - need definition of QUIT here!
+        ; TODO - need real definition of QUIT here!
+        .word DUP
+        .word STOP
+
+
+; --- DUP
+DUP_head:
+        .word QUIT_head         ; point back to QUIT
+        .byte $3
+        .ascii "DUP"
+DUP:    .word DUP_code
+DUP_code:
+        ; DPOP X                  ; get data item currently on top of stack
+        ; DPUSH X                 ; and push it...
+        ; DPUSH X                 ; ...twice
+        JMP next
+
+
+; --- STOP - headerless hack word to halt - TODO - remove this
+STOP:   .word STOP_code
+STOP_code:
+        HLT
 
