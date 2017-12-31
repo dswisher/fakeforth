@@ -13,6 +13,23 @@
 #define SEPS " \t,"
 
 
+typedef struct ArgCount
+{
+    unsigned char opcode;
+    int num_args;
+} ArgCount;
+
+ArgCount arg_counts[] =
+{
+    { OP_JMP, 1 },
+    { OP_LOAD, 2 },
+    { OP_DPUSH, 1 },
+    { OP_RPUSH, 1 }
+};
+
+int num_arg_counts = sizeof(arg_counts) / sizeof(arg_counts[0]);
+
+
 typedef struct Options
 {
     char *infile;
@@ -263,12 +280,24 @@ bool parse_pseudo(Context *context, int argc, char *argv[])
 }
 
 
-bool need_args(Context *context, int num, int argc, char *argv[], char *opcode)
+bool verify_arg_count(Context *context, int argc, unsigned char opcode)
 {
-    if (num != argc - 1)
+    int i;
+    for (i = 0; i < num_arg_counts; i++)
     {
-        print_error(context, "Malformed %s: |%s|\n", argv[0], opcode);
-        return FALSE;
+        if (arg_counts[i].opcode == opcode)
+        {
+            if (arg_counts[i].num_args == argc)
+            {
+                return TRUE;
+            }
+            else
+            {
+                print_error(context, "Incorrect number of arguments for %s, expected %d, saw %d.\n",
+                        op_code_to_name(opcode), arg_counts[i].num_args, argc);
+                return FALSE;
+            }
+        }
     }
 
     return TRUE;
@@ -328,21 +357,18 @@ bool parse_opcode(char *opcode, Context *context)
 
     add_byte(context, code);
 
+    if (!verify_arg_count(context, argc - 1, code))
+    {
+        return FALSE;
+    }
+
     switch (code)
     {
         case OP_JMP:
-            if (!need_args(context, 1, argc, argv, opcode))
-            {
-                return FALSE;
-            }
             add_label_ref(context, argv[1]);
             break;
 
         case OP_LOAD:
-            if (!need_args(context, 2, argc, argv, opcode))
-            {
-                return FALSE;
-            }
             if (!add_register(context, argv[1]))
             {
                 return FALSE;
@@ -354,6 +380,14 @@ bool parse_opcode(char *opcode, Context *context)
             else
             {
                 add_label_ref(context, argv[2]);
+            }
+            break;
+
+        case OP_DPUSH:
+        case OP_RPUSH:
+            if (!add_register(context, argv[1]))
+            {
+                return FALSE;
             }
             break;
     }

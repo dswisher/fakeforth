@@ -12,14 +12,25 @@ typedef struct SimSymbol
 } SimSymbol;
 
 
+typedef struct StackNode
+{
+    unsigned short value;
+    struct StackNode *next;
+} StackNode;
+
+
 typedef struct Simulator
 {
     char *memory;
 
-    // Registers and the like
+    // Registers
     unsigned short pc;      // program counter
     unsigned short ip;      // instruction pointer
     unsigned short x;       // scratch register
+
+    // Stacks
+    StackNode *data_stack;
+    StackNode *return_stack;
 
     // Simulation state
     bool halted;
@@ -35,5 +46,7 @@ void sim_run(Simulator *sim);
 void sim_step(Simulator *sim);
 void sim_disassemble(Simulator *sim, unsigned short addr, int num);
 char *sim_lookup_symbol(Simulator *sim, unsigned short addr);
+
+char *format_word(unsigned short addr);
 
 #endif

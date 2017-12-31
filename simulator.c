@@ -23,6 +23,8 @@ Simulator *sim_init(char *objfile)
     sim->halted = FALSE;
     sim->num_symbols = 0;
     sim->symbols = NULL;
+    sim->data_stack = NULL;
+    sim->return_stack = NULL;
 
     unsigned short len;
     fread(&len, sizeof(len), 1, file);
@@ -74,6 +76,70 @@ void sim_run(Simulator *sim)
 }
 
 
+unsigned short get_register(Simulator *sim, unsigned char reg)
+{
+    switch (reg)
+    {
+        case REG_PC:
+            return sim->pc;
+
+        case REG_IP:
+            return sim->ip;
+
+        case REG_X:
+            return sim->x;
+
+        default:
+            printf("Illegal/unhandled register 0x%02X\n", reg);
+            sim->halted = TRUE;
+            return 0;
+    }
+}
+
+
+void set_register(Simulator *sim, unsigned char reg, unsigned short value)
+{
+    switch (reg)
+    {
+        case REG_PC:
+            sim->pc = value;
+            break;
+
+        case REG_IP:
+            sim->ip = value;
+            break;
+
+        case REG_X:
+            sim->x = value;
+            break;
+
+        default:
+            printf("Illegal/unhandled register 0x%02X\n", reg);
+            sim->halted = TRUE;
+            break;
+    }
+}
+
+
+StackNode *push_register(Simulator *sim, unsigned char reg, StackNode *next)
+{
+    StackNode *node = malloc(sizeof(StackNode));
+    node->value = get_register(sim, reg);
+    node->next = next;
+
+    return node;
+}
+
+
+unsigned short read_word(Simulator *sim)
+{
+    unsigned char hi_byte = sim->memory[sim->pc++];
+    unsigned char lo_byte = sim->memory[sim->pc++];
+
+    return (hi_byte << 8) + lo_byte;
+}
+
+
 void sim_step(Simulator *sim)
 {
     if (sim->halted)
@@ -107,22 +173,17 @@ void sim_step(Simulator *sim)
 
         case OP_LOAD:
             reg = sim->memory[sim->pc++];
-            hi_byte = sim->memory[sim->pc++];
-            lo_byte = sim->memory[sim->pc++];
-            switch (reg)
-            {
-                case REG_IP:
-                    sim->ip = (hi_byte << 8) + lo_byte;
-                    break;
+            set_register(sim, reg, read_word(sim));
+            break;
 
-                case REG_X:
-                    sim->x = (hi_byte << 8) + lo_byte;
-                    break;
+        case OP_DPUSH:
+            reg = sim->memory[sim->pc++];
+            sim->data_stack = push_register(sim, reg, sim->data_stack);
+            break;
 
-                default:
-                    printf("Illegal register 0x%02X at 0x%04X\n", reg, loc);
-                    sim->halted = TRUE;
-            }
+        case OP_RPUSH:
+            reg = sim->memory[sim->pc++];
+            sim->return_stack = push_register(sim, reg, sim->return_stack);
             break;
 
         default:
@@ -169,7 +230,7 @@ void disassemble_register(Simulator *sim, char *buf, unsigned short *addr)
 }
 
 
-char *format_addr(unsigned short addr)
+char *format_word(unsigned short addr)
 {
     static char scratch[7];
     sprintf(scratch, "0x%04X", addr);
@@ -191,7 +252,7 @@ void disassemble_address(Simulator *sim, char *buf, unsigned short *addr)
     unsigned char lo_byte = sim->memory[(*addr)++];
     unsigned short val = (hi_byte << 8) + lo_byte;
     strcat(buf, " ");
-    strcat(buf, format_addr(val));
+    strcat(buf, format_word(val));
 
     char *sym = sim_lookup_symbol(sim, val);
     if (sym != NULL)
@@ -232,6 +293,11 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
 
         case OP_JMP:
             disassemble_address(sim, buf, addr);
+            break;
+
+        case OP_DPUSH:
+        case OP_RPUSH:
+            disassemble_register(sim, buf, addr);
             break;
     }
 

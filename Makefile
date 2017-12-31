@@ -27,11 +27,15 @@ ffsim: ffsim.o simulator.o opcodes.o
 
 ffdbg: ffdbg.o simulator.o opcodes.o
 
-ffasm.c: $(INCLUDES)
+ffasm.o: ffasm.c $(INCLUDES)
 
-ffsim.c: $(INCLUDES)
+ffsim.o: ffsim.c $(INCLUDES)
 
-ffdbg.c: $(INCLUDES)
+ffdbg.o: ffdbg.c $(INCLUDES)
+
+opcodes.o: opcodes.c $(INCLUDES)
+
+simulator.o: simulator.c $(INCLUDES)
 
 debug:
 	gdb --args ffasm ff.fa ff.fo

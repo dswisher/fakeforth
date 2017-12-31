@@ -21,13 +21,6 @@ typedef struct Options
 } Options;
 
 
-typedef struct StackNode
-{
-    unsigned short value;
-    struct StackNode *next;
-} StackNode;
-
-
 typedef struct Context Context;
 
 typedef struct DebugCommand
@@ -249,14 +242,52 @@ void dc_quit(Context *context)
 }
 
 
+void format_stack(char *buf, StackNode *top)
+{
+    strcpy(buf, "");
+    if (top == NULL)
+    {
+        strcat(buf, "nil");
+        return;
+    }
+
+    int num = 0;
+    while (top != NULL && num < 5)
+    {
+        if (num > 0)
+        {
+            strcat(buf, ", ");
+        }
+
+        strcat(buf, format_word(top->value));
+
+        num += 1;
+        top = top->next;
+    }
+}
+
+
 void dc_print(Context *context)
 {
     Simulator *sim = context->sim;
+    char ds[MAXCHAR];
+    char rs[MAXCHAR];
 
-    printf("    PC: 0x%04X   IP: 0x%04X\n", sim->pc, sim->ip);
-    printf("     X: 0x%04X\n", sim->x);
     puts("");
-    // TODO
+    if (sim->halted)
+    {
+        printf("    *** HALTED ***\n\n");
+    }
+
+    format_stack(ds, sim->data_stack);
+    format_stack(rs, sim->return_stack);
+
+    printf("    PC: 0x%04X        Data: %s\n", sim->pc, ds);
+    printf("    IP: 0x%04X      Return: %s\n", sim->ip, rs);
+    printf("     X: 0x%04X\n", sim->x);
+
+    puts("");
+
     sim_disassemble(sim, sim->pc, 3);
 }
 

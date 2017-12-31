@@ -12,9 +12,11 @@ typedef struct NameMap
 NameMap name_map[] =
 {
     { "NOP", OP_NOP },
-    { "HLT", OP_HLT },
     { "JMP", OP_JMP },
-    { "LOAD", OP_LOAD }
+    { "LOAD", OP_LOAD },
+    { "DPUSH", OP_DPUSH },
+    { "RPUSH", OP_RPUSH },
+    { "HLT", OP_HLT }
 };
 
 int num_ops = sizeof(name_map) / sizeof(name_map[0]);
