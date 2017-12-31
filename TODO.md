@@ -1,9 +1,13 @@
 ## TODO ##
 
 * Debugger:
+  * Implement word to non-destructively print the data stack
+  * Implement word to non-destructively print the return stack
+  * Implement word to find a dictionary entry (HOW to put a STRING on the debugger STACK?)
   * Implement a memory dump word (just dump bytes, w/o trying to disassemble; include ascii)
   * Implement a word to dump a Forth dictionary entry
   * Allow labels to be pushed onto the stack; perhaps with a way to quote them (so "next" can be used as a label, too)
+    * put STRING on stack, then invoke "lookup" word?!
   * Allow numbers to be pushed onto the stack
   * Implement simple arithmetic
 * Assembler:

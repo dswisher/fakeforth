@@ -7,6 +7,7 @@ _start:
 ; ------------------
 ; Inner interpreter
 ; ------------------
+DOCOL:  HLT                     ; TODO
 next:   HLT                     ; TODO
 
 
@@ -17,5 +18,11 @@ next:   HLT                     ; TODO
 cold_start:                     ; colon-word w/o a header
         .word QUIT
 
-QUIT:   .word QUIT              ; TODO - replace with the real stuff!
+; --- QUIT
+QUIT_head:
+        .word $0                ; link to previous word (none, in this case)
+        .byte $4                ; length of word - TODO - flags?
+        .ascii "QUIT"
+QUIT:   .word DOCOL             ; codeword - the interpreter
+        ; TODO - need definition of QUIT here!
 

@@ -150,9 +150,16 @@ char *skip_white(char *str)
 }
 
 
-void add_byte(Context *context, char val)
+void add_byte(Context *context, unsigned char val)
 {
     context->memory[context->origin++] = val;
+}
+
+
+void add_word(Context *context, unsigned short val)
+{
+    add_byte(context, val >> 8);
+    add_byte(context, val & 0xFF);
 }
 
 
@@ -202,12 +209,47 @@ void add_label_ref(Context *context, char *name)
 }
 
 
+void add_string(Context *context, char *str)
+{
+    char *c;
+
+    for (c = str; *c != 0; c++)
+    {
+        add_byte(context, *c);
+    }
+}
+
+
 bool parse_pseudo(Context *context, int argc, char *argv[])
 {
     if (!strcmp(argv[0], ".word"))
     {
-        // TODO - handle both labels and immediate values
-        add_label_ref(context, argv[1]);
+        if (argv[1][0] == '$')
+        {
+            add_word(context, atoi(&(argv[1][1])));
+        }
+        else
+        {
+            add_label_ref(context, argv[1]);
+        }
+
+        return TRUE;
+    }
+
+    if (!strcmp(argv[0], ".byte"))
+    {
+        add_byte(context, atoi(&(argv[1][1])));
+        return TRUE;
+    }
+
+    if (!strcmp(argv[0], ".ascii"))
+    {
+        // Strip quotes
+        char buf[MAXCHAR];
+        strcpy(buf, &(argv[1][1]));
+        char *pos = strrchr(buf, '"');
+        *pos = 0;
+        add_string(context, buf);
         return TRUE;
     }
 
