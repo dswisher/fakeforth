@@ -12,6 +12,7 @@
 #include "simulator.h"
 
 #define SEPS " \t\n"
+#define HIST_FILE ".ffhist"
 
 typedef struct Options
 {
@@ -37,13 +38,13 @@ typedef struct DebugCommand
 } DebugCommand;
 
 
-typedef struct Context
+struct Context
 {
     Simulator *sim;
     StackNode *stack;
     DebugCommand *commands;
     bool stop_requested;
-} Context;
+};
 
 
 Options *parse_args(int argc, char *argv[])
@@ -105,9 +106,13 @@ bool execute_command(Context *context)
     char *args[MAXARGS];
 
 #ifdef USE_READLINE
-    // TODO - buffer overflow!
-    char *line = readline("enter text>");
+    // TODO - fix possible buffer overflow!
+    char *line = readline(buf);
     strcpy(buf, line);
+    if (strlen(buf) > 0 && strcmp(buf, "q"))
+    {
+        add_history(buf);
+    }
     free(line);
 #else
     fputs(buf, stdout);
@@ -286,7 +291,7 @@ Context *create_context(Simulator *sim)
     add_command(context, "list", dc_list);
     add_command(context, "l", dc_list);
     add_command(context, "p", dc_print);
-    add_command(context, "pring", dc_print);
+    add_command(context, "print", dc_print);
 
     // TODO - help
     // TODO - set/clear breakpoint
@@ -306,7 +311,9 @@ int main(int argc, char *argv[])
     }
 
 #ifdef USE_READLINE
-    rl_read_init_file("/home/swish/.inputrc");
+    rl_read_init_file("~/.inputrc");
+    using_history();
+    read_history(HIST_FILE);
 #endif
 
     Simulator *sim = sim_init(options->infile);
@@ -317,6 +324,8 @@ int main(int argc, char *argv[])
     while (execute_command(context))
     {
     }
+
+    write_history(HIST_FILE);
 
     return 0;
 }

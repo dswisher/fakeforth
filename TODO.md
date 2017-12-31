@@ -1,9 +1,6 @@
 ## TODO ##
 
 * Debugger:
-  * Improve readline integration
-    * Save/restore history
-    * Links: [docs](http://www.delorie.com/gnu/docs/readline/rlman_23.html) - [hist](https://tiswww.cwru.edu/php/chet/readline/history.html#SEC10) - [sample1](https://eli.thegreenplace.net/2016/basics-of-using-the-readline-library/)
   * Implement word to non-destructively print the data stack
   * Implement word to non-destructively print the return stack
   * Implement word to find a dictionary entry (HOW to put a STRING on the debugger STACK?)
@@ -18,12 +15,14 @@
   * Write map (human readable assembled output) to a file
   * If a label is duplicated, issue an error
   * Implement multi-line comments
-* Change Makefile to compile common .c files to .o files once rather than for each binary
 
 
 ## DONE ##
 
 * Debugger:
+  * ~~Improve readline integration~~
+    * ~~Save/restore history~~
+    * ~~Links: [docs](http://www.delorie.com/gnu/docs/readline/rlman_23.html) - [hist](https://tiswww.cwru.edu/php/chet/readline/history.html#SEC10) - [sample1](https://eli.thegreenplace.net/2016/basics-of-using-the-readline-library/)~~
   * ~~read symbols and use them~~
   * ~~implement disassembly (list) command~~
   * ~~clean up command handling (use a lookup table or some such)~~
@@ -33,4 +32,5 @@
   * ~~Add line numbers to assembler errors~~
   * ~~Handle assembler lines with a label but no opcode~~
   * ~~Tweak assembler to take one file name; build other files (output, debug) based on that name~~
+* ~~Change Makefile to compile common .c files to .o files once rather than for each binary~~
 
