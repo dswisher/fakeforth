@@ -19,7 +19,10 @@ Simulator *sim_init(char *objfile)
     Simulator *sim = malloc(sizeof(Simulator));
     sim->memory = malloc(MEMSIZE);
     sim->pc = 0x0000;
-    sim->ip = 0xFFFF;
+    sim->ip = 0x0000;
+    sim->ca = 0x0000;
+    sim->x = 0x0000;
+    sim->y = 0x0000;
     sim->halted = FALSE;
     sim->num_symbols = 0;
     sim->symbols = NULL;
@@ -86,8 +89,14 @@ unsigned short get_register(Simulator *sim, unsigned char reg)
         case REG_IP:
             return sim->ip;
 
+        case REG_CA:
+            return sim->ca;
+
         case REG_X:
             return sim->x;
+
+        case REG_Y:
+            return sim->y;
 
         default:
             printf("Illegal/unhandled register 0x%02X\n", reg);
@@ -109,8 +118,16 @@ void set_register(Simulator *sim, unsigned char reg, unsigned short value)
             sim->ip = value;
             break;
 
+        case REG_CA:
+            sim->ca = value;
+            break;
+
         case REG_X:
             sim->x = value;
+            break;
+
+        case REG_Y:
+            sim->y = value;
             break;
 
         default:
@@ -118,6 +135,40 @@ void set_register(Simulator *sim, unsigned char reg, unsigned short value)
             sim->halted = TRUE;
             break;
     }
+}
+
+
+unsigned short pop_data(Simulator *sim)
+{
+    if (sim->data_stack == NULL)
+    {
+        printf("Data stack underflow.\n");
+        sim->halted = TRUE;
+        return 0;
+    }
+
+    StackNode *node = sim->data_stack;
+    sim->data_stack = node->next;
+    unsigned short value = node->value;
+    free(node);
+    return value;
+}
+
+
+unsigned short pop_return(Simulator *sim)
+{
+    if (sim->return_stack == NULL)
+    {
+        printf("Return stack underflow.\n");
+        sim->halted = TRUE;
+        return 0;
+    }
+
+    StackNode *node = sim->return_stack;
+    sim->return_stack = node->next;
+    unsigned short value = node->value;
+    free(node);
+    return value;
 }
 
 
@@ -186,6 +237,26 @@ void sim_step(Simulator *sim)
             sim->return_stack = push_register(sim, reg, sim->return_stack);
             break;
 
+        case OP_DPOP:
+            reg = sim->memory[sim->pc++];
+            set_register(sim, reg, pop_data(sim));
+            break;
+
+        case OP_RPOP:
+            reg = sim->memory[sim->pc++];
+            set_register(sim, reg, pop_return(sim));
+            break;
+
+        case OP_INC:
+            reg = sim->memory[sim->pc++];
+            set_register(sim, reg, get_register(sim, reg) + 1);
+            break;
+
+        case OP_DEC:
+            reg = sim->memory[sim->pc++];
+            set_register(sim, reg, get_register(sim, reg) - 1);
+            break;
+
         default:
             printf("Illegal opcode 0x%02X at 0x%04X\n", opcode, loc);
             sim->halted = TRUE;
@@ -219,8 +290,16 @@ void disassemble_register(Simulator *sim, char *buf, unsigned short *addr)
             strcat(buf, " IP");
             break;
 
+        case REG_CA:
+            strcat(buf, " CA");
+            break;
+
         case REG_X:
             strcat(buf, " X");
+            break;
+
+        case REG_Y:
+            strcat(buf, " Y");
             break;
 
         default:
@@ -297,6 +376,10 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
 
         case OP_DPUSH:
         case OP_RPUSH:
+        case OP_DPOP:
+        case OP_RPOP:
+        case OP_INC:
+        case OP_DEC:
             disassemble_register(sim, buf, addr);
             break;
     }

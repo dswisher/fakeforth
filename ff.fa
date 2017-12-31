@@ -13,14 +13,25 @@ _start:
 ;    CA - points to the codeword of the word we're about to execute
 ;
 ;   %esi -> IP
-;   %eax -> CA
+;   %eax -> CA - true?
 ; ------------------
 DOCOL:  RPUSH IP                ; We're nesting down, so save the IP for when we're done
-        ; ADDI CA, $2
+        INC CA                  ; Move CA to point to the...
+        INC CA                  ; ...first data word
+        ; COPY CA, IP             ; Put data word in IP
+        JMP next
+
+
+; ------------------
+; NEXT - move to the next instruction of the word
+;       lodsl       - read memory at %esi into %eax
+;                   - increments %esi by 4
+;       jmp *(%eax) - jumps to address at memory address pointed to by eax
+; ------------------
+next:   ; FETCH CA, (IP)
+        INC IP
+        INC IP                  ; TODO - replace with ADD?
         HLT
-
-
-next:   HLT                     ; TODO
 
 
 ; ------------------
@@ -49,9 +60,9 @@ DUP_head:
         .ascii "DUP"
 DUP:    .word DUP_code
 DUP_code:
-        ; DPOP X                  ; get data item currently on top of stack
-        ; DPUSH X                 ; and push it...
-        ; DPUSH X                 ; ...twice
+        DPOP X                  ; get data item currently on top of stack
+        DPUSH X                 ; and push it...
+        DPUSH X                 ; ...twice
         JMP next
 
 

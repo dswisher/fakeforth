@@ -189,9 +189,21 @@ void dc_push_ip(Context *context)
 }
 
 
+void dc_push_ca(Context *context)
+{
+    do_push(context, context->sim->ca);
+}
+
+
 void dc_push_x(Context *context)
 {
     do_push(context, context->sim->x);
+}
+
+
+void dc_push_y(Context *context)
+{
+    do_push(context, context->sim->y);
 }
 
 
@@ -284,7 +296,9 @@ void dc_print(Context *context)
 
     printf("    PC: 0x%04X        Data: %s\n", sim->pc, ds);
     printf("    IP: 0x%04X      Return: %s\n", sim->ip, rs);
+    printf("    CA: 0x%04X\n", sim->ca);
     printf("     X: 0x%04X\n", sim->x);
+    printf("     Y: 0x%04X\n", sim->y);
 
     puts("");
 
@@ -312,7 +326,9 @@ Context *create_context(Simulator *sim)
 
     add_command(context, "pc", dc_push_pc);
     add_command(context, "ip", dc_push_ip);
+    add_command(context, "ca", dc_push_ca);
     add_command(context, "x", dc_push_x);
+    add_command(context, "y", dc_push_y);
     add_command(context, ".", dc_dot);
     add_command(context, "quit", dc_quit);
     add_command(context, "q", dc_quit);
@@ -356,7 +372,9 @@ int main(int argc, char *argv[])
     {
     }
 
+#ifdef USE_READLINE
     write_history(HIST_FILE);
+#endif
 
     return 0;
 }

@@ -26,7 +26,9 @@ typedef struct Simulator
     // Registers
     unsigned short pc;      // program counter
     unsigned short ip;      // instruction pointer
+    unsigned short ca;      // code address pointer
     unsigned short x;       // scratch register
+    unsigned short y;       // scratch register
 
     // Stacks
     StackNode *data_stack;

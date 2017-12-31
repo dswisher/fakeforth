@@ -24,7 +24,11 @@ ArgCount arg_counts[] =
     { OP_JMP, 1 },
     { OP_LOAD, 2 },
     { OP_DPUSH, 1 },
-    { OP_RPUSH, 1 }
+    { OP_RPUSH, 1 },
+    { OP_DPOP, 1 },
+    { OP_RPOP, 1 },
+    { OP_INC, 1 },
+    { OP_DEC, 1 }
 };
 
 int num_arg_counts = sizeof(arg_counts) / sizeof(arg_counts[0]);
@@ -312,9 +316,21 @@ bool add_register(Context *context, char *name)
         return TRUE;
     }
 
+    if (!strcmp(name, "CA"))
+    {
+        add_byte(context, REG_CA);
+        return TRUE;
+    }
+
     if (!strcmp(name, "X"))
     {
         add_byte(context, REG_X);
+        return TRUE;
+    }
+
+    if (!strcmp(name, "Y"))
+    {
+        add_byte(context, REG_Y);
         return TRUE;
     }
 
@@ -385,6 +401,10 @@ bool parse_opcode(char *opcode, Context *context)
 
         case OP_DPUSH:
         case OP_RPUSH:
+        case OP_DPOP:
+        case OP_RPOP:
+        case OP_INC:
+        case OP_DEC:
             if (!add_register(context, argv[1]))
             {
                 return FALSE;

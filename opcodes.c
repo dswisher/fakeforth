@@ -16,6 +16,10 @@ NameMap name_map[] =
     { "LOAD", OP_LOAD },
     { "DPUSH", OP_DPUSH },
     { "RPUSH", OP_RPUSH },
+    { "DPOP", OP_DPOP },
+    { "RPOP", OP_RPOP },
+    { "INC", OP_INC },
+    { "DEC", OP_DEC },
     { "HLT", OP_HLT }
 };
 
