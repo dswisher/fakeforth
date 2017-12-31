@@ -32,7 +32,7 @@ Simulator *sim_init(char *objfile);
 void sim_load_symbols(Simulator *sim, char *symfile);
 void sim_run(Simulator *sim);
 void sim_step(Simulator *sim);
-void sim_print(Simulator *sim);
 void sim_disassemble(Simulator *sim, unsigned short addr, int num);
+char *sim_lookup_symbol(Simulator *sim, unsigned short addr);
 
 #endif

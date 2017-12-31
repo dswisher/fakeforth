@@ -3,9 +3,6 @@ _start:
         LOAD IP,cold_start      ; set the IP to a reference to QUIT
         JMP next
 
-cold_start:                     ; colon-word w/o a header
-        .word QUIT
-
 
 ; ------------------
 ; Inner interpreter
@@ -14,8 +11,11 @@ next:   HLT                     ; TODO
 
 
 ; ------------------
-; Built-in Words
+; Words
 ; ------------------
 
-QUIT:   .word QUIT              ; TODO
+cold_start:                     ; colon-word w/o a header
+        .word QUIT
+
+QUIT:   .word QUIT              ; TODO - replace with the real stuff!
 

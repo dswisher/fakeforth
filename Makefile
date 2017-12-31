@@ -23,9 +23,9 @@ ff.fo: ff.fa ffasm
 
 ffasm: ffasm.c opcodes.c
 
-ffsim: ffsim.c simulator.c
+ffsim: ffsim.c simulator.c opcodes.c
 
-ffdbg: ffdbg.c simulator.c
+ffdbg: ffdbg.c simulator.c opcodes.c
 
 ffasm.c: $(INCLUDES)
 

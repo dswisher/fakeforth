@@ -15,6 +15,32 @@ typedef struct Options
 } Options;
 
 
+typedef struct StackNode
+{
+    unsigned short value;
+    struct StackNode *next;
+} StackNode;
+
+
+typedef struct Context Context;
+
+typedef struct DebugCommand
+{
+    char *name;
+    void (*func)(Context *context);
+    struct DebugCommand *next;
+} DebugCommand;
+
+
+typedef struct Context
+{
+    Simulator *sim;
+    StackNode *stack;
+    DebugCommand *commands;
+    bool stop_requested;
+} Context;
+
+
 Options *parse_args(int argc, char *argv[])
 {
     if (argc != 2)
@@ -50,50 +76,26 @@ Options *parse_args(int argc, char *argv[])
 }
 
 
-bool parse_and_execute_command(Simulator *sim, int argc, char *argv[])
+DebugCommand *find_command(Context *context, char *name)
 {
-    // TODO - turn this into a command table or some such
-    if (!strcmp(argv[0], "q") || !strcmp(argv[0], "quit"))
+    DebugCommand *command = context->commands;
+    while (command != NULL)
     {
-        return FALSE;
+        if (!strcmp(command->name, name))
+        {
+            return command;
+        }
+
+        command = command->next;
     }
 
-    if (!strcmp(argv[0], "n") || !strcmp(argv[0], "next"))
-    {
-        sim_step(sim);
-        return TRUE;
-    }
-
-    if (!strcmp(argv[0], "r") || !strcmp(argv[0], "run"))
-    {
-        sim_run(sim);
-        return TRUE;
-    }
-
-    if (!strcmp(argv[0], "p") || !strcmp(argv[0], "print"))
-    {
-        // TODO - accept additional args to indicate what to print
-        sim_print(sim);
-        return TRUE;
-    }
-
-    // TODO - add help command
-
-    if (!strcmp(argv[0], "list"))
-    {
-        sim_disassemble(sim, sim->pc, 1);
-        return TRUE;
-    }
-
-    printf("Unknown command: `%s`.\n", argv[0]);
-
-    return TRUE;
+    return NULL;
 }
 
 
-bool execute_command(Simulator *sim)
+bool execute_command(Context *context)
 {
-    printf("0x%04X: ", sim->pc);
+    printf("0x%04X: ", context->sim->pc);
     char buf[MAXCHAR];
     char *args[MAXARGS];
     if (fgets(buf, MAXCHAR, stdin) == NULL)
@@ -115,7 +117,148 @@ bool execute_command(Simulator *sim)
         return TRUE;
     }
 
-    return parse_and_execute_command(sim, num, args);
+    int i;
+    for (i = 0; i < num; i++)
+    {
+        DebugCommand *command = find_command(context, args[i]);
+        if (command == NULL)
+        {
+            // TODO - look for matching symbol
+            printf("Command '%s' is not known!\n", args[i]);
+            return TRUE;
+        }
+
+        command->func(context);
+
+        if (context->stop_requested)
+        {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+
+void do_push(Context *context, unsigned short value)
+{
+    StackNode *node = malloc(sizeof(StackNode));
+    node->value = value;
+    node->next = context->stack;
+    context->stack = node;
+}
+
+
+unsigned short do_pop(Context *context)
+{
+    if (context->stack == NULL)
+    {
+        printf("Nothing on the stack!\n");
+        return 0;
+    }
+
+    StackNode *node = context->stack;
+    context->stack = node->next;
+    unsigned short value = node->value;
+    free(node);
+    return value;
+}
+
+
+void dc_push_pc(Context *context)
+{
+    do_push(context, context->sim->pc);
+}
+
+
+void dc_push_ip(Context *context)
+{
+    do_push(context, context->sim->ip);
+}
+
+
+void dc_print(Context *context)
+{
+    unsigned short value = do_pop(context);
+    char *symbol = sim_lookup_symbol(context->sim, value);
+
+    if (symbol == NULL)
+    {
+        printf("0x%04X\n", value);
+    }
+    else
+    {
+        printf("0x%04X (%s)\n", value, symbol);
+    }
+}
+
+
+void dc_next(Context *context)
+{
+    sim_step(context->sim);
+}
+
+
+void dc_run(Context *context)
+{
+    sim_run(context->sim);
+}
+
+
+void dc_list(Context *context)
+{
+    unsigned short addr = context->sim->pc;
+    if (context->stack != NULL)
+    {
+        addr = do_pop(context);
+    }
+
+    // TODO - add variable to keep track of how many instructions to disassemble
+    sim_disassemble(context->sim, addr, 3);
+}
+
+
+void dc_quit(Context *context)
+{
+    context->stop_requested = TRUE;
+}
+
+
+void add_command(Context *context, char *name, void (*func)(Context *context))
+{
+    DebugCommand *command = malloc(sizeof(DebugCommand));
+    command->name = name;
+    command->next = context->commands;
+    command->func = func;
+    context->commands = command;
+}
+
+
+Context *create_context(Simulator *sim)
+{
+    Context *context = malloc(sizeof(Context));
+    context->sim = sim;
+    context->stack = NULL;
+    context->commands = NULL;
+    context->stop_requested = FALSE;
+
+    add_command(context, "pc", dc_push_pc);
+    add_command(context, "ip", dc_push_ip);
+    add_command(context, ".", dc_print);
+    add_command(context, "quit", dc_quit);
+    add_command(context, "q", dc_quit);
+    add_command(context, "n", dc_next);
+    add_command(context, "next", dc_next);
+    add_command(context, "run", dc_run);
+    add_command(context, "list", dc_list);
+    add_command(context, "l", dc_list);
+
+    // TODO - help
+    // TODO - set/clear breakpoint
+
+    // TODO - make aliases explicitly aliases, rather than defining commands twice
+
+    return context;
 }
 
 
@@ -130,7 +273,9 @@ int main(int argc, char *argv[])
     Simulator *sim = sim_init(options->infile);
     sim_load_symbols(sim, options->symfile);
 
-    while (execute_command(sim))
+    Context *context = create_context(sim);
+
+    while (execute_command(context))
     {
     }
 

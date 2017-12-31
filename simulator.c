@@ -129,34 +129,133 @@ void sim_step(Simulator *sim)
 }
 
 
-char pretty_buff[MAXCHAR];
-char *lookup_pretty_symbol_by_address(Simulator *sim, unsigned short addr)
+char *sim_lookup_symbol(Simulator *sim, unsigned short addr)
 {
     int i;
-    *pretty_buff = 0;
     for (i = 0; i < sim->num_symbols; i++)
     {
         if (sim->symbols[i]->location == addr)
         {
-            sprintf(pretty_buff, " (%s)", sim->symbols[i]->name);
-            break;
+            return sim->symbols[i]->name;
         }
     }
 
-    return pretty_buff;
+    return NULL;
 }
 
 
-void sim_print(Simulator *sim)
+void disassemble_register(Simulator *sim, char *buf, unsigned short *addr)
 {
-    printf("PC: 0x%04X%s\n", sim->pc, lookup_pretty_symbol_by_address(sim, sim->pc));
-    printf("IP: 0x%04X%s\n", sim->ip, lookup_pretty_symbol_by_address(sim, sim->ip));
+    unsigned char code = sim->memory[(*addr)++];
+
+    switch (code)
+    {
+        case REG_IP:
+            strcat(buf, " IP");
+            break;
+
+        default:
+            strcat(buf, " ??");
+            break;
+    }
+}
+
+
+char *format_addr(unsigned char addr)
+{
+    static char scratch[7];
+    sprintf(scratch, "0x%04X", addr);
+    return scratch;
+}
+
+
+char *format_byte(unsigned char b)
+{
+    static char scratch[3];
+    sprintf(scratch, "%02X", b);
+    return scratch;
+}
+
+
+void disassemble_address(Simulator *sim, char *buf, unsigned short *addr)
+{
+    unsigned char hi_byte = sim->memory[(*addr)++];
+    unsigned char lo_byte = sim->memory[(*addr)++];
+    unsigned short val = (hi_byte << 8) + lo_byte;
+    strcat(buf, " ");
+    strcat(buf, format_addr(val));
+
+    char *sym = sim_lookup_symbol(sim, val);
+    if (sym != NULL)
+    {
+        strcat(buf, " (");
+        strcat(buf, sym);
+        strcat(buf, ")");
+    }
+}
+
+
+char *format_bytes(Simulator *sim, unsigned short start, unsigned short end)
+{
+    static char scratch[MAXCHAR];
+    strcpy(scratch, "");
+    while (start < end)
+    {
+        strcat(scratch, format_byte(sim->memory[start]));
+        start += 1;
+    }
+    return scratch;
+}
+
+
+void disassemble_one(Simulator *sim, unsigned short *addr)
+{
+    unsigned short start = *addr;
+    char buf[MAXCHAR];
+    strcpy(buf, "");
+    unsigned char code = sim->memory[(*addr)++];
+    strcat(buf, op_code_to_name(code));
+    switch (code)
+    {
+        case OP_LOAD:
+            disassemble_register(sim, buf, addr);
+            disassemble_address(sim, buf, addr);
+            break;
+
+        case OP_JMP:
+            disassemble_address(sim, buf, addr);
+            break;
+    }
+
+    unsigned short end = *addr;
+
+    char *sym = sim_lookup_symbol(sim, start);
+    char buf2[MAXCHAR];
+    if (sym == NULL)
+    {
+        strcpy(buf2, "");
+    }
+    else
+    {
+        sprintf(buf2, "%s:", sym);
+    }
+
+    char *indi = "";
+    if (start == sim->pc)
+    {
+        indi = "->";
+    }
+
+    printf(" %-2s 0x%04X %-12.12s %-8s %s\n", indi, start, buf2, format_bytes(sim, start, end), buf);
 }
 
 
 void sim_disassemble(Simulator *sim, unsigned short addr, int num)
 {
-    // TODO
-    printf("sim_disassemble is not yet implemented!\n");
+    while (num > 0)
+    {
+        disassemble_one(sim, &addr);
+        --num;
+    }
 }
 

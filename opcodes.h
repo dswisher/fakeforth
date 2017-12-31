@@ -9,6 +9,7 @@
 
 #define REG_IP  0x01
 
-unsigned char op_name_to_code(char *opcode);
+unsigned char op_name_to_code(char *name);
+char *op_code_to_name(unsigned char code);
 
 #endif
