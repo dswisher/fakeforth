@@ -5,6 +5,7 @@
 
 #include "simulator.h"
 #include "opcodes.h"
+#include "util.h"
 
 
 Simulator *sim_init(char *objfile)
@@ -59,7 +60,7 @@ void sim_load_symbols(Simulator *sim, char *symname)
         *pos = 0;
 
         SimSymbol *entry = malloc(sizeof(SimSymbol));
-        entry->name = strdup(sym);
+        entry->name = my_strdup(sym);
         entry->location = loc;
 
         sim->symbols[sim->num_symbols++] = entry;
@@ -182,7 +183,7 @@ StackNode *push_register(Simulator *sim, unsigned char reg, StackNode *next)
 }
 
 
-unsigned short read_memory(Simulator *sim, unsigned short addr)
+unsigned short sim_read_word(Simulator *sim, unsigned short addr)
 {
     unsigned char hi_byte = sim->memory[addr];
     unsigned char lo_byte = sim->memory[addr + 1];
@@ -191,7 +192,7 @@ unsigned short read_memory(Simulator *sim, unsigned short addr)
 }
 
 
-unsigned short read_word(Simulator *sim)
+unsigned short consume_word(Simulator *sim)
 {
     unsigned char hi_byte = sim->memory[sim->pc++];
     unsigned char lo_byte = sim->memory[sim->pc++];
@@ -234,7 +235,7 @@ void sim_step(Simulator *sim)
 
         case OP_GO:
             reg = sim->memory[sim->pc++];
-            sim->pc = read_memory(sim, get_register(sim, reg));
+            sim->pc = sim_read_word(sim, get_register(sim, reg));
             break;
 
         case OP_LOAD0:
@@ -245,18 +246,18 @@ void sim_step(Simulator *sim)
 
         case OP_LOAD1:
             reg = sim->memory[sim->pc++];
-            set_register(sim, reg, read_word(sim));
+            set_register(sim, reg, consume_word(sim));
             break;
 
         case OP_LOAD2:
             reg = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
-            set_register(sim, reg, read_memory(sim, get_register(sim, reg2)));
+            set_register(sim, reg, sim_read_word(sim, get_register(sim, reg2)));
             break;
 
         case OP_LOAD3:
             reg = sim->memory[sim->pc++];
-            set_register(sim, reg, read_memory(sim, read_word(sim)));
+            set_register(sim, reg, sim_read_word(sim, consume_word(sim)));
             break;
 
         case OP_DPUSH:
@@ -299,8 +300,7 @@ void sim_step(Simulator *sim)
 
 bool sim_lookup_symbol(Simulator *sim, char *name, unsigned short *addr)
 {
-    int i;
-    for (i = 0; i < sim->num_symbols; i++)
+    for (int i = 0; i < sim->num_symbols; i++)
     {
         if (!strcmp(sim->symbols[i]->name, name))
         {
@@ -315,8 +315,7 @@ bool sim_lookup_symbol(Simulator *sim, char *name, unsigned short *addr)
 
 char *sim_reverse_lookup_symbol(Simulator *sim, unsigned short addr)
 {
-    int i;
-    for (i = 0; i < sim->num_symbols; i++)
+    for (int i = 0; i < sim->num_symbols; i++)
     {
         if (sim->symbols[i]->location == addr)
         {

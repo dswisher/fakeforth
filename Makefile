@@ -6,9 +6,9 @@ else
 endif
 
 BINS = ffasm ffsim ffdbg
-INCLUDES = common.h simulator.h opcodes.h
+INCLUDES = common.h simulator.h opcodes.h util.h
 
-CFLAGS = -g -Wall -DUSE_READLINE -I/usr/local/opt/readline/include
+CFLAGS = -g -std=c99 -Wall -DUSE_READLINE -I/usr/local/opt/readline/include
 LDLIBS = -lreadline
 
 ifeq ($(detected_OS),Darwin)  # Mac OS X
@@ -21,11 +21,11 @@ all: $(BINS) ff.fo
 ff.fo: ff.asm ffasm
 	./ffasm ff
 
-ffasm: ffasm.o opcodes.o
+ffasm: ffasm.o opcodes.o util.o
 
-ffsim: ffsim.o simulator.o opcodes.o
+ffsim: ffsim.o simulator.o opcodes.o util.o
 
-ffdbg: ffdbg.o simulator.o opcodes.o
+ffdbg: ffdbg.o simulator.o opcodes.o util.o
 
 ffasm.o: ffasm.c $(INCLUDES)
 
@@ -36,6 +36,8 @@ ffdbg.o: ffdbg.c $(INCLUDES)
 opcodes.o: opcodes.c $(INCLUDES)
 
 simulator.o: simulator.c $(INCLUDES)
+
+util.o: util.c $(INCLUDES)
 
 debug:
 	gdb --args ffasm ff.fa ff.fo

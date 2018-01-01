@@ -8,6 +8,7 @@
 #include "common.h"
 #include "simulator.h"
 #include "opcodes.h"
+#include "util.h"
 
 
 #define SEPS " \t,"
@@ -89,7 +90,7 @@ Options *parse_args(int argc, char *argv[])
     {
         strcpy(scratch, argv[1]);
         strcat(scratch, ".asm");
-        options->infile = strdup(scratch);
+        options->infile = my_strdup(scratch);
     }
     else
     {
@@ -101,11 +102,11 @@ Options *parse_args(int argc, char *argv[])
     *dot = 0;
 
     strcat(scratch, ".fo");
-    options->outfile = strdup(scratch);
+    options->outfile = my_strdup(scratch);
 
     *dot = 0;
     strcat(scratch, ".sym");
-    options->symfile = strdup(scratch);
+    options->symfile = my_strdup(scratch);
 
     return options;
 }
@@ -212,7 +213,7 @@ Symbol *lookup_symbol(Context *context, char *name)
 Symbol *add_symbol(Context *context, char *name)
 {
     Symbol *symbol = malloc(sizeof(Symbol));
-    symbol->name = strdup(name);
+    symbol->name = my_strdup(name);
     symbol->location = 0xFFFF;
     symbol->next = context->symbols;
     symbol->refs = NULL;
@@ -290,8 +291,7 @@ bool parse_pseudo(Context *context, int argc, char *argv[])
 
 bool verify_arg_count(Context *context, int argc, unsigned char opcode)
 {
-    int i;
-    for (i = 0; i < num_arg_counts; i++)
+    for (int i = 0; i < num_arg_counts; i++)
     {
         if (arg_counts[i].opcode == opcode)
         {

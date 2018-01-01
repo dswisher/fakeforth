@@ -96,3 +96,23 @@ STOP:   .word STOP_code
 STOP_code:
         HLT
 
+; --- Built-in Variables
+
+; TODO - STATE
+; TODO - HERE
+; TODO - BASE
+
+LATEST_head:
+        .word EXIT_head         ; link to previous word
+        .byte $6                ; length of word - TODO - flags?
+        .ascii "LATEST"
+LATEST: .word LATEST_code       ; codeword
+LATEST_code:
+        LOAD X, var_LATEST
+        DPUSH X                 ; TODO - DPUSH needs addressing modes!
+        JMP next
+var_LATEST:
+        .word LATEST_head       ; must be the most recent dictionary entry!
+
+
+

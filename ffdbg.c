@@ -12,6 +12,7 @@
 
 #include "common.h"
 #include "simulator.h"
+#include "util.h"
 
 #define SEPS " \t\n"
 #define HIST_FILE ".ffhist"
@@ -69,7 +70,7 @@ Options *parse_args(int argc, char *argv[])
     {
         strcpy(scratch, argv[1]);
         strcat(scratch, ".fo");
-        options->infile = strdup(scratch);
+        options->infile = my_strdup(scratch);
     }
     else
     {
@@ -81,7 +82,7 @@ Options *parse_args(int argc, char *argv[])
     *dot = 0;
 
     strcat(scratch, ".sym");
-    options->symfile = strdup(scratch);
+    options->symfile = my_strdup(scratch);
 
     return options;
 }
@@ -117,8 +118,7 @@ StringPool *sp_init()
 unsigned short sp_find_or_add(StringPool *pool, char *str)
 {
     // NOTE: using 1-based indexing so that 0 indicates not-found
-    int i;
-    for (i = 0; i < pool->num_strings; i++)
+    for (int i = 0; i < pool->num_strings; i++)
     {
         if (!strcmp(pool->strings[i], str))
         {
@@ -135,7 +135,7 @@ unsigned short sp_find_or_add(StringPool *pool, char *str)
 
     // Add the string
     int idx = pool->num_strings++;
-    pool->strings[idx] = strdup(str);
+    pool->strings[idx] = my_strdup(str);
     return idx + 1;
 }
 
@@ -245,8 +245,7 @@ bool execute_command(Context *context)
         return TRUE;
     }
 
-    int i;
-    for (i = 0; i < num; i++)
+    for (int i = 0; i < num; i++)
     {
         char *word = args[i];
 
@@ -316,6 +315,11 @@ void dc_push_y(Context *context)
 
 void dc_dot(Context *context)
 {
+    if (context->stack == NULL)
+    {
+        printf("<empty stack>\n");
+        return;
+    }
     unsigned short value = do_pop(context);
     char *symbol = sim_reverse_lookup_symbol(context->sim, value);
 
@@ -416,8 +420,7 @@ void dc_print(Context *context)
 void dc_syms(Context *context)
 {
     Simulator *sim = context->sim;
-    int i;
-    for (i = 0; i < sim->num_symbols; i++)
+    for (int i = 0; i < sim->num_symbols; i++)
     {
         printf("   0x%04X  %s\n", sim->symbols[i]->location, sim->symbols[i]->name);
     }
@@ -488,6 +491,10 @@ void dc_lookup(Context *context)
         return;
     }
     char *name = sp_get_string(context->string_pool, sid);
+    if (name == NULL)
+    {
+        return;
+    }
     unsigned short addr;
     if (sim_lookup_symbol(context->sim, name, &addr))
     {
@@ -497,6 +504,61 @@ void dc_lookup(Context *context)
     {
         printf("Symbol '%s' not found.\n", name);
     }
+}
+
+
+void dc_find(Context *context)
+{
+    char buf[MAXCHAR];
+    unsigned short sid = do_pop(context);
+    if (sid == 0)
+    {
+        return;
+    }
+    char *name = sp_get_string(context->string_pool, sid);
+    if (name == NULL)
+    {
+        return;
+    }
+    int name_len = strlen(name);
+
+    unsigned short addr;
+    if (!sim_lookup_symbol(context->sim, "var_LATEST", &addr))
+    {
+        printf("Could not find var_LATEST symbol!\n");
+        return;
+    }
+
+    // Start with the first dictionary entry
+    addr = sim_read_word(context->sim, addr);
+
+    // Keep searching until we find something...
+    while (addr != 0)
+    {
+        unsigned char dict_len = context->sim->memory[addr + 2];    // TODO - mask off flags
+        if (dict_len == name_len)
+        {
+            memset(buf, 0, MAXCHAR);
+            for (int i = 0; i < dict_len; i++)
+            {
+                buf[i] = context->sim->memory[addr + 3 + i];
+            }
+            
+            if (!strcmp(buf, name))
+            {
+                do_push(context, addr);
+                printf("%s found at 0x%04d (pushed).\n", name, addr);
+                return;
+            }
+        }
+
+        // No match yet; check the next one
+        addr = sim_read_word(context->sim, addr);
+    }
+
+    // No match at all!
+    printf("Not found.\n");
+    do_push(context, 0);
 }
 
 
@@ -540,6 +602,7 @@ Context *create_context(Simulator *sim)
     add_command(context, "dd", dc_dump);
     add_command(context, "emit", dc_emit);
     add_command(context, "lookup", dc_lookup);
+    add_command(context, "find", dc_find);
 
     // TODO - help
     // TODO - set/clear breakpoint

@@ -50,6 +50,7 @@ void sim_step(Simulator *sim);
 void sim_disassemble(Simulator *sim, unsigned short addr, int num);
 char *sim_reverse_lookup_symbol(Simulator *sim, unsigned short addr);
 bool sim_lookup_symbol(Simulator *sim, char *name, unsigned short *addr);
+unsigned short sim_read_word(Simulator *sim, unsigned short addr);
 
 char *format_word(unsigned short addr);
 

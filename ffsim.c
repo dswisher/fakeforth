@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "simulator.h"
+#include "util.h"
 
 
 typedef struct Options
@@ -31,7 +32,7 @@ Options *parse_args(int argc, char *argv[])
     {
         strcpy(scratch, argv[1]);
         strcat(scratch, ".fo");
-        options->infile = strdup(scratch);
+        options->infile = my_strdup(scratch);
     }
     else
     {
