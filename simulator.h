@@ -48,7 +48,8 @@ void sim_load_symbols(Simulator *sim, char *symfile);
 void sim_run(Simulator *sim);
 void sim_step(Simulator *sim);
 void sim_disassemble(Simulator *sim, unsigned short addr, int num);
-char *sim_lookup_symbol(Simulator *sim, unsigned short addr);
+char *sim_reverse_lookup_symbol(Simulator *sim, unsigned short addr);
+bool sim_lookup_symbol(Simulator *sim, char *name, unsigned short *addr);
 
 char *format_word(unsigned short addr);
 

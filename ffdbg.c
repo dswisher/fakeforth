@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <errno.h>
 
 #ifdef USE_READLINE
@@ -33,12 +34,21 @@ typedef struct DebugCommand
 } DebugCommand;
 
 
+typedef struct StringPool
+{
+    char **strings;
+    int num_strings;
+    int size_strings;
+} StringPool;
+
+
 struct Context
 {
     Simulator *sim;
     StackNode *stack;
     DebugCommand *commands;
     bool stop_requested;
+    StringPool *string_pool;
 };
 
 
@@ -94,8 +104,63 @@ DebugCommand *find_command(Context *context, char *name)
 }
 
 
+StringPool *sp_init()
+{
+    StringPool *pool = malloc(sizeof(StringPool));
+    pool->num_strings = 0;
+    pool->size_strings = 20;    // initial size
+    pool->strings = malloc(pool->size_strings * sizeof(char *));
+    return pool;
+}
+
+
+unsigned short sp_find_or_add(StringPool *pool, char *str)
+{
+    // NOTE: using 1-based indexing so that 0 indicates not-found
+    int i;
+    for (i = 0; i < pool->num_strings; i++)
+    {
+        if (!strcmp(pool->strings[i], str))
+        {
+            return i + 1;
+        }
+    }
+
+    // String not found; allocate more space if we need it
+    if (pool->num_strings >= pool->size_strings)
+    {
+        pool->size_strings *= 2;
+        pool->strings = realloc(pool->strings, pool->size_strings * sizeof(char *));
+    }
+
+    // Add the string
+    int idx = pool->num_strings++;
+    pool->strings[idx] = strdup(str);
+    return idx + 1;
+}
+
+
+char *sp_get_string(StringPool *pool, unsigned short idx)
+{
+    if (idx < 1 || idx > pool->num_strings)
+    {
+        return NULL;
+    }
+
+    return pool->strings[idx - 1];
+}
+
+
 bool convert_to_number(char *word, unsigned short *value)
 {
+    char *c;
+    for (c = word; *c != 0; c++)
+    {
+        if (!isxdigit(*c))
+        {
+            return FALSE;
+        }
+    }
     errno = 0;
     *value = strtol(word, NULL, 16);
     return errno == 0;
@@ -124,6 +189,22 @@ unsigned short do_pop(Context *context)
     unsigned short value = node->value;
     free(node);
     return value;
+}
+
+
+void do_push_string(Context *context, char *str)
+{
+    char buf[MAXCHAR];
+    strcpy(buf, str + 1);
+    char *pos;
+    if ((pos = strrchr(buf, '"')) != NULL)
+    {
+        *pos = 0;
+    }
+
+    unsigned short sid = sp_find_or_add(context->string_pool, buf);
+
+    do_push(context, sid);
 }
 
 
@@ -187,11 +268,15 @@ bool execute_command(Context *context)
             continue;
         }
 
-        // TODO - if it looks like a string, push that
+        if (*word == '"')
+        {
+            do_push_string(context, word);
+            continue;
+        }
 
         printf("Command '%s' is not known!\n", word);
 
-        // Keep going
+        // Stop processing the current line (but don't exit the interpreter)
         return TRUE;
     }
 
@@ -232,7 +317,7 @@ void dc_push_y(Context *context)
 void dc_dot(Context *context)
 {
     unsigned short value = do_pop(context);
-    char *symbol = sim_lookup_symbol(context->sim, value);
+    char *symbol = sim_reverse_lookup_symbol(context->sim, value);
 
     if (symbol == NULL)
     {
@@ -343,7 +428,7 @@ void dc_dump(Context *context)
 {
     if (context->stack == NULL)
     {
-        printf("You must push an address on the stack, first.\n");
+        printf("Need an address on the stack.\n");
         return;
     }
 
@@ -383,6 +468,38 @@ void dc_dump(Context *context)
 }
 
 
+void dc_emit(Context *context)
+{
+    unsigned short sid = do_pop(context);
+    if (sid == 0)
+    {
+        return;
+    }
+    char *str = sp_get_string(context->string_pool, sid);
+    printf(" -> |%s|\n", str);
+}
+
+
+void dc_lookup(Context *context)
+{
+    unsigned short sid = do_pop(context);
+    if (sid == 0)
+    {
+        return;
+    }
+    char *name = sp_get_string(context->string_pool, sid);
+    unsigned short addr;
+    if (sim_lookup_symbol(context->sim, name, &addr))
+    {
+        do_push(context, addr);
+    }
+    else
+    {
+        printf("Symbol '%s' not found.\n", name);
+    }
+}
+
+
 void add_command(Context *context, char *name, void (*func)(Context *context))
 {
     DebugCommand *command = malloc(sizeof(DebugCommand));
@@ -400,6 +517,7 @@ Context *create_context(Simulator *sim)
     context->stack = NULL;
     context->commands = NULL;
     context->stop_requested = FALSE;
+    context->string_pool = sp_init();
 
     add_command(context, "pc", dc_push_pc);
     add_command(context, "ip", dc_push_ip);
@@ -420,6 +538,8 @@ Context *create_context(Simulator *sim)
     add_command(context, "dump", dc_dump);
     add_command(context, "hd", dc_dump);
     add_command(context, "dd", dc_dump);
+    add_command(context, "emit", dc_emit);
+    add_command(context, "lookup", dc_lookup);
 
     // TODO - help
     // TODO - set/clear breakpoint

@@ -297,7 +297,23 @@ void sim_step(Simulator *sim)
 }
 
 
-char *sim_lookup_symbol(Simulator *sim, unsigned short addr)
+bool sim_lookup_symbol(Simulator *sim, char *name, unsigned short *addr)
+{
+    int i;
+    for (i = 0; i < sim->num_symbols; i++)
+    {
+        if (!strcmp(sim->symbols[i]->name, name))
+        {
+            *addr = sim->symbols[i]->location;
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+
+char *sim_reverse_lookup_symbol(Simulator *sim, unsigned short addr)
 {
     int i;
     for (i = 0; i < sim->num_symbols; i++)
@@ -365,7 +381,7 @@ void disassemble_address(Simulator *sim, char *buf, unsigned short *addr)
     unsigned short val = (hi_byte << 8) + lo_byte;
     strcat(buf, format_word(val));
 
-    char *sym = sim_lookup_symbol(sim, val);
+    char *sym = sim_reverse_lookup_symbol(sim, val);
     if (sym != NULL)
     {
         strcat(buf, " [");
@@ -456,7 +472,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
 
     unsigned short end = *addr;
 
-    char *sym = sim_lookup_symbol(sim, start);
+    char *sym = sim_reverse_lookup_symbol(sim, start);
     char buf2[MAXCHAR];
     if (sym == NULL)
     {
