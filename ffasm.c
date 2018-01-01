@@ -22,7 +22,10 @@ typedef struct ArgCount
 ArgCount arg_counts[] =
 {
     { OP_JMP, 1 },
-    { OP_LOAD, 2 },
+    { OP_LOAD0, 2 },
+    { OP_LOAD1, 2 },
+    { OP_LOAD2, 2 },
+    { OP_LOAD3, 2 },
     { OP_DPUSH, 1 },
     { OP_RPUSH, 1 },
     { OP_DPOP, 1 },
@@ -339,6 +342,17 @@ bool add_register(Context *context, char *name)
 }
 
 
+bool is_register(char *name)
+{
+    if (!strcmp(name, "IP") || !strcmp(name, "CA") || !strcmp(name, "X") || !strcmp(name, "Y"))
+    {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+
 bool parse_opcode(char *opcode, Context *context)
 {
     char buf[MAXCHAR];
@@ -371,31 +385,41 @@ bool parse_opcode(char *opcode, Context *context)
         return FALSE;
     }
 
-    add_byte(context, code);
-
     if (!verify_arg_count(context, argc - 1, code))
     {
         return FALSE;
     }
 
+    // For LOAD, look at the addressing mode and adjust the code
+    if ((code & 0xF0) == MASK_LOAD)
+    {
+        if (is_register(argv[2]))
+        {
+            code = OP_LOAD0;
+        }
+        else if (is_label(argv[2]) || is_literal(argv[2]))
+        {
+            code = OP_LOAD1;
+        }
+        // TODO - modes 2 and 3
+    }
+
+    add_byte(context, code);
+
+    // Handle the first argument
     switch (code)
     {
         case OP_JMP:
             add_label_ref(context, argv[1]);
             break;
 
-        case OP_LOAD:
+        case OP_LOAD0:
+        case OP_LOAD1:
+        case OP_LOAD2:
+        case OP_LOAD3:
             if (!add_register(context, argv[1]))
             {
                 return FALSE;
-            }
-            if (argv[2][0] == '$')
-            {
-                add_literal(context, argv[2]);
-            }
-            else
-            {
-                add_label_ref(context, argv[2]);
             }
             break;
 
@@ -410,6 +434,33 @@ bool parse_opcode(char *opcode, Context *context)
                 return FALSE;
             }
             break;
+    }
+
+    // Handle the second argument (for codes that have a second argument)
+    switch (code)
+    {
+        case OP_LOAD0:
+            if (!add_register(context, argv[1]))
+            {
+                return FALSE;
+            }
+            break;
+
+        case OP_LOAD1:
+            if (argv[2][0] == '$')
+            {
+                add_literal(context, argv[2]);
+            }
+            else
+            {
+                add_label_ref(context, argv[2]);
+            }
+            break;
+
+        case OP_LOAD2:
+        case OP_LOAD3:
+            printf("Load modes 2 and 3 are not yet implemented!\n");
+            return FALSE;
     }
 
     return TRUE;

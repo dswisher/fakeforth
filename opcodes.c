@@ -13,7 +13,10 @@ NameMap name_map[] =
 {
     { "NOP", OP_NOP },
     { "JMP", OP_JMP },
-    { "LOAD", OP_LOAD },
+    { "LOAD", OP_LOAD0 },
+    { "LOAD", OP_LOAD1 },
+    { "LOAD", OP_LOAD2 },
+    { "LOAD", OP_LOAD3 },
     { "DPUSH", OP_DPUSH },
     { "RPUSH", OP_RPUSH },
     { "DPOP", OP_DPOP },

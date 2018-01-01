@@ -222,7 +222,14 @@ void sim_step(Simulator *sim)
             sim->pc = (hi_byte << 8) + lo_byte;
             break;
 
-        case OP_LOAD:
+        case OP_LOAD0:
+        case OP_LOAD2:
+        case OP_LOAD3:
+            printf("Load modes 0, 2 and 3 are not yet implemented!\n");
+            sim->halted = TRUE;
+            break;
+
+        case OP_LOAD1:
             reg = sim->memory[sim->pc++];
             set_register(sim, reg, read_word(sim));
             break;
@@ -363,11 +370,15 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
     strcpy(buf, "");
     unsigned char code = sim->memory[(*addr)++];
     strcat(buf, op_code_to_name(code));
+
+    // Handle the first argument
     switch (code)
     {
-        case OP_LOAD:
+        case OP_LOAD0:
+        case OP_LOAD1:
+        case OP_LOAD2:
+        case OP_LOAD3:
             disassemble_register(sim, buf, addr);
-            disassemble_address(sim, buf, addr);
             break;
 
         case OP_JMP:
@@ -381,6 +392,23 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_INC:
         case OP_DEC:
             disassemble_register(sim, buf, addr);
+            break;
+    }
+
+    // Handle the second argument
+    switch (code)
+    {
+        case OP_LOAD0:
+            disassemble_address(sim, buf, addr);
+            break;
+
+        case OP_LOAD1:
+            disassemble_address(sim, buf, addr);
+            break;
+
+        case OP_LOAD2:
+        case OP_LOAD3:
+            // TODO - implement these!
             break;
     }
 
