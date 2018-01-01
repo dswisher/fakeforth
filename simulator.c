@@ -182,6 +182,15 @@ StackNode *push_register(Simulator *sim, unsigned char reg, StackNode *next)
 }
 
 
+unsigned short read_memory(Simulator *sim, unsigned short addr)
+{
+    unsigned char hi_byte = sim->memory[addr];
+    unsigned char lo_byte = sim->memory[addr + 1];
+
+    return (hi_byte << 8) + lo_byte;
+}
+
+
 unsigned short read_word(Simulator *sim)
 {
     unsigned char hi_byte = sim->memory[sim->pc++];
@@ -202,6 +211,7 @@ void sim_step(Simulator *sim)
     unsigned short loc = sim->pc;
     unsigned char opcode = sim->memory[sim->pc++];
     unsigned char reg;
+    unsigned char reg2;
     unsigned char hi_byte;
     unsigned char lo_byte;
 
@@ -223,15 +233,25 @@ void sim_step(Simulator *sim)
             break;
 
         case OP_LOAD0:
-        case OP_LOAD2:
-        case OP_LOAD3:
-            printf("Load modes 0, 2 and 3 are not yet implemented!\n");
-            sim->halted = TRUE;
+            reg = sim->memory[sim->pc++];
+            reg2 = sim->memory[sim->pc++];
+            set_register(sim, reg, get_register(sim, reg2));
             break;
 
         case OP_LOAD1:
             reg = sim->memory[sim->pc++];
             set_register(sim, reg, read_word(sim));
+            break;
+
+        case OP_LOAD2:
+            reg = sim->memory[sim->pc++];
+            reg2 = sim->memory[sim->pc++];
+            set_register(sim, reg, read_memory(sim, get_register(sim, reg2)));
+            break;
+
+        case OP_LOAD3:
+            reg = sim->memory[sim->pc++];
+            set_register(sim, reg, read_memory(sim, read_word(sim)));
             break;
 
         case OP_DPUSH:
@@ -294,23 +314,23 @@ void disassemble_register(Simulator *sim, char *buf, unsigned short *addr)
     switch (code)
     {
         case REG_IP:
-            strcat(buf, " IP");
+            strcat(buf, "IP");
             break;
 
         case REG_CA:
-            strcat(buf, " CA");
+            strcat(buf, "CA");
             break;
 
         case REG_X:
-            strcat(buf, " X");
+            strcat(buf, "X");
             break;
 
         case REG_Y:
-            strcat(buf, " Y");
+            strcat(buf, "Y");
             break;
 
         default:
-            strcat(buf, " ??");
+            strcat(buf, "??");
             break;
     }
 }
@@ -332,20 +352,20 @@ char *format_byte(unsigned char b)
 }
 
 
+// In reality, this should be disassemble word, but we assume it's an address to display syms
 void disassemble_address(Simulator *sim, char *buf, unsigned short *addr)
 {
     unsigned char hi_byte = sim->memory[(*addr)++];
     unsigned char lo_byte = sim->memory[(*addr)++];
     unsigned short val = (hi_byte << 8) + lo_byte;
-    strcat(buf, " ");
     strcat(buf, format_word(val));
 
     char *sym = sim_lookup_symbol(sim, val);
     if (sym != NULL)
     {
-        strcat(buf, " (");
+        strcat(buf, " [");
         strcat(buf, sym);
-        strcat(buf, ")");
+        strcat(buf, "]");
     }
 }
 
@@ -378,10 +398,12 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_LOAD1:
         case OP_LOAD2:
         case OP_LOAD3:
+            strcat(buf, " ");
             disassemble_register(sim, buf, addr);
             break;
 
         case OP_JMP:
+            strcat(buf, " ");
             disassemble_address(sim, buf, addr);
             break;
 
@@ -391,6 +413,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_RPOP:
         case OP_INC:
         case OP_DEC:
+            strcat(buf, " ");
             disassemble_register(sim, buf, addr);
             break;
     }
@@ -399,16 +422,25 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
     switch (code)
     {
         case OP_LOAD0:
-            disassemble_address(sim, buf, addr);
+            strcat(buf, ", ");
+            disassemble_register(sim, buf, addr);
             break;
 
         case OP_LOAD1:
+            strcat(buf, ", ");
             disassemble_address(sim, buf, addr);
             break;
 
         case OP_LOAD2:
+            strcat(buf, ", (");
+            disassemble_register(sim, buf, addr);
+            strcat(buf, ")");
+            break;
+
         case OP_LOAD3:
-            // TODO - implement these!
+            strcat(buf, ", (");
+            disassemble_address(sim, buf, addr);
+            strcat(buf, ")");
             break;
     }
 

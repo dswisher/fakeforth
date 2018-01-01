@@ -42,6 +42,7 @@ typedef struct Simulator
     SimSymbol **symbols;
 } Simulator;
 
+
 Simulator *sim_init(char *objfile);
 void sim_load_symbols(Simulator *sim, char *symfile);
 void sim_run(Simulator *sim);

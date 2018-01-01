@@ -87,7 +87,7 @@ Options *parse_args(int argc, char *argv[])
     if (dot == NULL)
     {
         strcpy(scratch, argv[1]);
-        strcat(scratch, ".fa");
+        strcat(scratch, ".asm");
         options->infile = strdup(scratch);
     }
     else
@@ -342,9 +342,9 @@ bool add_register(Context *context, char *name)
 }
 
 
-bool is_register(char *name)
+bool is_register(char *str)
 {
-    if (!strcmp(name, "IP") || !strcmp(name, "CA") || !strcmp(name, "X") || !strcmp(name, "Y"))
+    if (!strcmp(str, "IP") || !strcmp(str, "CA") || !strcmp(str, "X") || !strcmp(str, "Y"))
     {
         return TRUE;
     }
@@ -353,10 +353,44 @@ bool is_register(char *name)
 }
 
 
+bool is_literal(char *str)
+{
+    return (*str == '$');
+}
+
+
+// TODO - remove this?
+bool is_symbol(Context *context, char *str)
+{
+    Symbol *symbol;
+    for (symbol = context->symbols; symbol != NULL; symbol = symbol->next)
+    {
+        if (!strcmp(symbol->name, str))
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+
+char *deref_argument(char *arg)
+{
+    static char inner[MAXCHAR];
+    strcpy(inner, arg + 1);
+    char *pos = strrchr(inner, ')');
+    *pos = 0;
+    return inner;
+}
+
+
+// TODO - switch parameter order
 bool parse_opcode(char *opcode, Context *context)
 {
     char buf[MAXCHAR];
     char *argv[MAXARGS];
+    char *inner;
     int argc = 0;
     strcpy(buf, opcode);
     char *token = strtok(buf, SEPS);
@@ -393,15 +427,32 @@ bool parse_opcode(char *opcode, Context *context)
     // For LOAD, look at the addressing mode and adjust the code
     if ((code & 0xF0) == MASK_LOAD)
     {
+        // TODO - break this out to a function that returns the mode, then switch on that
         if (is_register(argv[2]))
         {
             code = OP_LOAD0;
         }
-        else if (is_label(argv[2]) || is_literal(argv[2]))
+        else if (is_literal(argv[2]) || argv[2][0] != '(')
         {
             code = OP_LOAD1;
         }
-        // TODO - modes 2 and 3
+        else if (argv[2][0] == '(' && strrchr(argv[2], ')') != NULL)
+        {
+            inner = deref_argument(argv[2]);
+            if (is_register(inner))
+            {
+                code = OP_LOAD2;
+            }
+            else
+            {
+                code = OP_LOAD3;
+            }
+        }
+        else
+        {
+            print_error(context, "Unknown addressing mode: |%s|\n", argv[2]);
+            return FALSE;
+        }
     }
 
     add_byte(context, code);
@@ -440,7 +491,7 @@ bool parse_opcode(char *opcode, Context *context)
     switch (code)
     {
         case OP_LOAD0:
-            if (!add_register(context, argv[1]))
+            if (!add_register(context, argv[2]))
             {
                 return FALSE;
             }
@@ -458,9 +509,24 @@ bool parse_opcode(char *opcode, Context *context)
             break;
 
         case OP_LOAD2:
+            inner = deref_argument(argv[2]);
+            if (!add_register(context, inner))
+            {
+                return FALSE;
+            }
+            break;
+
         case OP_LOAD3:
-            printf("Load modes 2 and 3 are not yet implemented!\n");
-            return FALSE;
+            inner = deref_argument(argv[2]);
+            if (inner[0] == '$')
+            {
+                add_literal(context, inner);
+            }
+            else
+            {
+                add_label_ref(context, inner);
+            }
+            break;
     }
 
     return TRUE;

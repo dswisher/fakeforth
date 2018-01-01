@@ -1,6 +1,7 @@
 ## TODO ##
 
 * Debugger:
+  * Keep track of the last PC and show that one bit of history when disassembling
   * Implement word to find a dictionary entry (HOW to put a STRING on the debugger STACK?)
   * Implement a memory dump word (just dump bytes, w/o trying to disassemble; include ascii)
   * Implement a word to dump a Forth dictionary entry
@@ -8,6 +9,7 @@
     * put STRING on stack, then invoke "lookup" word?!
   * Allow numbers to be pushed onto the stack
   * Implement simple arithmetic
+  * In `print`, show symbols that match register values
 * Assembler:
   * Write pseudo to create Forth dictionary header
   * Write map (human readable assembled output) to a file

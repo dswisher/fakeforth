@@ -306,6 +306,17 @@ void dc_print(Context *context)
 }
 
 
+void dc_syms(Context *context)
+{
+    Simulator *sim = context->sim;
+    int i;
+    for (i = 0; i < sim->num_symbols; i++)
+    {
+        printf("   0x%04X  %s\n", sim->symbols[i]->location, sim->symbols[i]->name);
+    }
+}
+
+
 void add_command(Context *context, char *name, void (*func)(Context *context))
 {
     DebugCommand *command = malloc(sizeof(DebugCommand));
@@ -339,6 +350,7 @@ Context *create_context(Simulator *sim)
     add_command(context, "l", dc_list);
     add_command(context, "p", dc_print);
     add_command(context, "print", dc_print);
+    add_command(context, "syms", dc_syms);
 
     // TODO - help
     // TODO - set/clear breakpoint

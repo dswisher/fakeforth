@@ -1,10 +1,10 @@
 
 _start:
         ; address mode testing
-        LOAD Y, QUIT    ; Y will be the address of the QUIT label
-        LOAD X, DOCOL
-        ; LOAD X, (Y)     ; X will be the value stored at the QUIT label (DOCOL)
-        LOAD IP, X      ; IP will be the same as X
+        LOAD Y, QUIT    ; mode 1 - Y will be the address of the QUIT label
+        LOAD X, (Y)     ; mode 2 - X will be the value stored at the QUIT label (DOCOL)
+        LOAD IP, X      ; mode 0 - IP will be the same as X
+        LOAD CA, (DUP)  ; mode 3 - CA will be DUP_code
 
         LOAD X, $DAD    ; HACK! Random stuff on the stack to test DUP
         DPUSH X         ; ...more HACK...
