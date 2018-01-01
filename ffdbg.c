@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #ifdef USE_READLINE
 #include <readline/readline.h>
@@ -13,6 +14,7 @@
 
 #define SEPS " \t\n"
 #define HIST_FILE ".ffhist"
+#define DUMP_SIZE (5 * 16)
 
 typedef struct Options
 {
@@ -92,6 +94,39 @@ DebugCommand *find_command(Context *context, char *name)
 }
 
 
+bool convert_to_number(char *word, unsigned short *value)
+{
+    errno = 0;
+    *value = strtol(word, NULL, 16);
+    return errno == 0;
+}
+
+
+void do_push(Context *context, unsigned short value)
+{
+    StackNode *node = malloc(sizeof(StackNode));
+    node->value = value;
+    node->next = context->stack;
+    context->stack = node;
+}
+
+
+unsigned short do_pop(Context *context)
+{
+    if (context->stack == NULL)
+    {
+        printf("Nothing on the stack!\n");
+        return 0;
+    }
+
+    StackNode *node = context->stack;
+    context->stack = node->next;
+    unsigned short value = node->value;
+    free(node);
+    return value;
+}
+
+
 bool execute_command(Context *context)
 {
     char buf[MAXCHAR];
@@ -132,48 +167,35 @@ bool execute_command(Context *context)
     int i;
     for (i = 0; i < num; i++)
     {
-        DebugCommand *command = find_command(context, args[i]);
-        if (command == NULL)
+        char *word = args[i];
+
+        DebugCommand *command = find_command(context, word);
+        if (command != NULL)
         {
-            // TODO - look for matching symbol
-            printf("Command '%s' is not known!\n", args[i]);
-            return TRUE;
+            command->func(context);
+            if (context->stop_requested)
+            {
+                return FALSE;
+            }
+            continue;
         }
 
-        command->func(context);
-
-        if (context->stop_requested)
+        unsigned short value;
+        if (convert_to_number(word, &value))
         {
-            return FALSE;
+            do_push(context, value);
+            continue;
         }
+
+        // TODO - if it looks like a string, push that
+
+        printf("Command '%s' is not known!\n", word);
+
+        // Keep going
+        return TRUE;
     }
 
     return TRUE;
-}
-
-
-void do_push(Context *context, unsigned short value)
-{
-    StackNode *node = malloc(sizeof(StackNode));
-    node->value = value;
-    node->next = context->stack;
-    context->stack = node;
-}
-
-
-unsigned short do_pop(Context *context)
-{
-    if (context->stack == NULL)
-    {
-        printf("Nothing on the stack!\n");
-        return 0;
-    }
-
-    StackNode *node = context->stack;
-    context->stack = node->next;
-    unsigned short value = node->value;
-    free(node);
-    return value;
 }
 
 
@@ -317,6 +339,50 @@ void dc_syms(Context *context)
 }
 
 
+void dc_dump(Context *context)
+{
+    if (context->stack == NULL)
+    {
+        printf("You must push an address on the stack, first.\n");
+        return;
+    }
+
+    char ascii[MAXCHAR];
+    unsigned short addr = do_pop(context);
+    unsigned short i;
+    unsigned char value;
+    for (i = 0; i < DUMP_SIZE; i++)
+    {
+        if ((i % 16) == 0)
+        {
+            if (i > 0)
+            {
+                printf("  |%s|\n", ascii);
+            }
+            printf("  0x%04X:", addr + i);
+            memset(ascii, 0, MAXCHAR);
+        }
+        else if ((i % 8) == 0)
+        {
+            printf(" ");
+        }
+
+        value = context->sim->memory[addr + i];
+        printf(" %02X", value);
+        if ((value < ' ') || (value > '~'))
+        {
+            ascii[i % 16] = '.';
+        }
+        else
+        {
+            ascii[i % 16] = value;
+        }
+    }
+
+    printf("  |%s|\n", ascii);
+}
+
+
 void add_command(Context *context, char *name, void (*func)(Context *context))
 {
     DebugCommand *command = malloc(sizeof(DebugCommand));
@@ -351,6 +417,9 @@ Context *create_context(Simulator *sim)
     add_command(context, "p", dc_print);
     add_command(context, "print", dc_print);
     add_command(context, "syms", dc_syms);
+    add_command(context, "dump", dc_dump);
+    add_command(context, "hd", dc_dump);
+    add_command(context, "dd", dc_dump);
 
     // TODO - help
     // TODO - set/clear breakpoint

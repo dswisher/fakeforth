@@ -21,7 +21,7 @@ typedef struct StackNode
 
 typedef struct Simulator
 {
-    char *memory;
+    unsigned char *memory;
 
     // Registers
     unsigned short pc;      // program counter

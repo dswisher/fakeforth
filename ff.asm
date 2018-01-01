@@ -52,7 +52,7 @@ QUIT_head:
         .ascii "QUIT"
 QUIT:   .word DOCOL             ; codeword - the interpreter
         ; TODO - need real definition of QUIT here!
-        .word DUP
+        .word TDUP
         .word STOP
 
 
@@ -66,6 +66,28 @@ DUP_code:
         DPOP X                  ; get data item currently on top of stack
         DPUSH X                 ; and push it...
         DPUSH X                 ; ...twice
+        JMP next
+
+
+; --- 2DUP - testing - TODO - this is NOT the correct, standard definition!
+TDUP_head:
+        .word DUP_head          ; link to previous word
+        .byte $4                ; length of word - TODO - flags?
+        .ascii "2DUP"
+TDUP:   .word DOCOL             ; codeword - the interpreter
+        .word DUP
+        .word DUP
+        .word EXIT
+
+
+; --- EXIT - tacked onto end of all high-level words
+EXIT_head:
+        .word TDUP_head         ; link to previous word
+        .byte $4                ; length of word - TODO - flags?
+        .ascii "EXIT"
+EXIT:   .word EXIT_code         ; codeword
+EXIT_code:
+        RPOP IP
         JMP next
 
 
