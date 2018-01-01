@@ -1,11 +1,5 @@
 
 _start:
-        ; address mode testing
-        LOAD Y, QUIT    ; mode 1 - Y will be the address of the QUIT label
-        LOAD X, (Y)     ; mode 2 - X will be the value stored at the QUIT label (DOCOL)
-        LOAD IP, X      ; mode 0 - IP will be the same as X
-        LOAD CA, (DUP)  ; mode 3 - CA will be DUP_code
-
         LOAD X, $DAD    ; HACK! Random stuff on the stack to test DUP
         DPUSH X         ; ...more HACK...
 
@@ -25,7 +19,7 @@ _start:
 DOCOL:  RPUSH IP                ; We're nesting down, so save the IP for when we're done
         INC CA                  ; Move CA to point to the...
         INC CA                  ; ...first data word
-        ; LOAD CA, IP             ; Put data word in IP
+        LOAD IP, CA             ; Put data word in IP
         JMP next
 
 
@@ -35,17 +29,19 @@ DOCOL:  RPUSH IP                ; We're nesting down, so save the IP for when we
 ;                   - increments %esi by 4
 ;       jmp *(%eax) - jumps to address at memory address pointed to by eax
 ; ------------------
-next:   ; LOAD CA, (IP)
+next:   LOAD CA, (IP)
         INC IP
         INC IP                  ; TODO - replace with ADD?
-        HLT
+        ; TODO - implement indirect JMP
+        ; JMP (CA)
+        GO CA   ; TODO - get rid of GO!
 
 
 ; ------------------
 ; Words
 ; ------------------
 
-cold_start:                     ; colon-word w/o a header
+cold_start:                     ; colon-word w/o a header or codeword
         .word QUIT
 
 

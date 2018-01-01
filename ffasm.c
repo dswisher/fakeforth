@@ -22,6 +22,7 @@ typedef struct ArgCount
 ArgCount arg_counts[] =
 {
     { OP_JMP, 1 },
+    { OP_GO, 1 },
     { OP_LOAD0, 2 },
     { OP_LOAD1, 2 },
     { OP_LOAD2, 2 },
@@ -462,6 +463,13 @@ bool parse_opcode(char *opcode, Context *context)
     {
         case OP_JMP:
             add_label_ref(context, argv[1]);
+            break;
+
+        case OP_GO:
+            if (!add_register(context, argv[1]))
+            {
+                return FALSE;
+            }
             break;
 
         case OP_LOAD0:

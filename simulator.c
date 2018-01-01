@@ -232,6 +232,11 @@ void sim_step(Simulator *sim)
             sim->pc = (hi_byte << 8) + lo_byte;
             break;
 
+        case OP_GO:
+            reg = sim->memory[sim->pc++];
+            sim->pc = read_memory(sim, get_register(sim, reg));
+            break;
+
         case OP_LOAD0:
             reg = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
@@ -405,6 +410,11 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_JMP:
             strcat(buf, " ");
             disassemble_address(sim, buf, addr);
+            break;
+
+        case OP_GO:
+            strcat(buf, " ");
+            disassemble_register(sim, buf, addr);
             break;
 
         case OP_DPUSH:

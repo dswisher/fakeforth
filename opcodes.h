@@ -11,6 +11,8 @@
 #define OP_INC      0x07
 #define OP_DEC      0x08
 
+#define OP_GO       0x09    // TODO - hack until JMP modes done
+
 // LOAD reserves 0x2x range
 #define MASK_LOAD   0x20
 #define OP_LOAD0    0x21

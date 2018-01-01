@@ -1,7 +1,11 @@
 ## TODO ##
 
+* Change sample to do 2DUP, which calls DUP, to see if nesting works
+* REDO opcodes: 12 bytes for op-code, 4 bytes for address mode
+* Get rid of GO and replace with JMP with proper address modes
 * Debugger:
   * Keep track of the last PC and show that one bit of history when disassembling
+  * In `print`, show symbols that match register values
   * Implement word to find a dictionary entry (HOW to put a STRING on the debugger STACK?)
   * Implement a memory dump word (just dump bytes, w/o trying to disassemble; include ascii)
   * Implement a word to dump a Forth dictionary entry
@@ -9,7 +13,6 @@
     * put STRING on stack, then invoke "lookup" word?!
   * Allow numbers to be pushed onto the stack
   * Implement simple arithmetic
-  * In `print`, show symbols that match register values
 * Assembler:
   * Write pseudo to create Forth dictionary header
   * Write map (human readable assembled output) to a file
