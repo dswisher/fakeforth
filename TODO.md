@@ -1,7 +1,12 @@
 ## TODO ##
 
-* REDO opcodes: 12 bytes for op-code, 4 bytes for address mode
+* REDO opcodes: 6 bytes for op-code, 2 bytes for address mode
 * Get rid of GO and replace with JMP with proper address modes
+* Forth
+  * Implement `LIT`, `!` and `@`
+  * Implement `EMIT`, which requires new PUTC opcode
+  * Implement `KEY`, which requires a bunch of new opcodes
+  * Implement `INTERPRET`
 * Debugger:
   * Keep track of the last PC and show that one bit of history when disassembling
   * In `print`, show symbols that match register values

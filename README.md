@@ -2,6 +2,9 @@
 
 A toy implementation of Forth, using a homebrew simulated machine.
 
+* Inspiration: [Jones Forth](https://github.com/AlexandreAbreu/jonesforth)
+* Goal? [Forth Standard](https://forth-standard.org/)
+
 
 ### Assembly Language Notes ###
 

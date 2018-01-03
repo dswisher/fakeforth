@@ -1,9 +1,5 @@
 
 _start:
-        LOAD X, $DAD    ; HACK! Random stuff on the stack to test DUP
-        DPUSH X         ; ...more HACK...
-
-        ; "real" code starts here
         LOAD IP, cold_start     ; set the IP to a reference to QUIT
         JMP next
 
@@ -51,9 +47,21 @@ QUIT_head:
         .byte $4                ; length of word - TODO - flags?
         .ascii "QUIT"
 QUIT:   .word DOCOL             ; codeword - the interpreter
-        ; TODO - need real definition of QUIT here!
+        ; TODO - need real definition of QUIT here! This is just test code, for now.
+        .word LIT
+        .word $F00
+        .word LIT
+        .word _dad
+        .word FETCH
         .word TDUP
+        .word LIT
+        .word _dad
+        .word LIT
+        .word $FOO
+        .word STORE
         .word STOP
+
+_dad:   .word $DAD
 
 
 ; --- DUP
@@ -96,6 +104,49 @@ STOP:   .word STOP_code
 STOP_code:
         HLT
 
+; --- LIT
+
+; TODO - should this be headerless? I don't see it in the standard!
+LIT_head:
+        .word EXIT_head         ; link to previous word
+        .byte $1                ; length of word
+        .ascii "LIT"
+LIT:  .word LIT_code
+LIT_code:
+        LOAD X, (IP)
+        INC IP
+        INC IP
+        DPUSH X
+        JMP next
+
+
+; -- STORE
+
+STORE_head:
+        .word LIT_head          ; link to previous word
+        .byte $1                ; length of word
+        .ascii "!"
+STORE:  .word STORE_code
+STORE_code:
+        DPOP X                  ; address to store
+        DPOP Y                  ; value to store
+        STORE Y, (X)            ; do it - store value of Y at address pointed to by X
+        JMP next
+
+
+; --- FETCH
+
+FETCH_head:
+        .word STORE_head        ; link to previous word
+        .byte $1                ; length of word
+        .ascii "@"
+FETCH:  .word FETCH_code
+FETCH_code:
+        DPOP X                  ; address to fetch
+        LOAD Y, (X)             ; fetch it
+        DPUSH Y                 ; and put it on the stack
+        JMP next
+
 ; --- Built-in Variables
 
 ; TODO - STATE
@@ -103,7 +154,7 @@ STOP_code:
 ; TODO - BASE
 
 LATEST_head:
-        .word EXIT_head         ; link to previous word
+        .word FETCH_head        ; link to previous word
         .byte $6                ; length of word - TODO - flags?
         .ascii "LATEST"
 LATEST: .word LATEST_code       ; codeword

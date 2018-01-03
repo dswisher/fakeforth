@@ -212,11 +212,13 @@ void sim_step(Simulator *sim)
     unsigned short loc = sim->pc;
     unsigned char opcode = sim->memory[sim->pc++];
     unsigned char reg;
-    unsigned char reg2;
     unsigned char hi_byte;
     unsigned char lo_byte;
 
-    switch (opcode)
+    unsigned char code = opcode & ~0x03;
+    unsigned char mode = opcode & 0x03;
+
+    switch (code)
     {
         case OP_NOP:
             break;
@@ -238,6 +240,7 @@ void sim_step(Simulator *sim)
             sim->pc = sim_read_word(sim, get_register(sim, reg));
             break;
 
+/*
         case OP_LOAD0:
             reg = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
@@ -259,6 +262,7 @@ void sim_step(Simulator *sim)
             reg = sim->memory[sim->pc++];
             set_register(sim, reg, sim_read_word(sim, consume_word(sim)));
             break;
+*/
 
         case OP_DPUSH:
             reg = sim->memory[sim->pc++];
@@ -291,7 +295,7 @@ void sim_step(Simulator *sim)
             break;
 
         default:
-            printf("Illegal opcode 0x%02X at 0x%04X\n", opcode, loc);
+            printf("Illegal opcode 0x%02X at 0x%04X (code 0x%02X, mode 0x%02X)\n", opcode, loc, code, mode);
             sim->halted = TRUE;
             break;
     }
@@ -408,20 +412,16 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
     unsigned short start = *addr;
     char buf[MAXCHAR];
     strcpy(buf, "");
-    unsigned char code = sim->memory[(*addr)++];
+    unsigned char opcode = sim->memory[(*addr)++];
+
+    unsigned char code = opcode & ~0x03;
+    unsigned char mode = opcode & 0x03;
+
     strcat(buf, op_code_to_name(code));
 
     // Handle the first argument
     switch (code)
     {
-        case OP_LOAD0:
-        case OP_LOAD1:
-        case OP_LOAD2:
-        case OP_LOAD3:
-            strcat(buf, " ");
-            disassemble_register(sim, buf, addr);
-            break;
-
         case OP_JMP:
             strcat(buf, " ");
             disassemble_address(sim, buf, addr);
@@ -432,6 +432,8 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
             disassemble_register(sim, buf, addr);
             break;
 
+        case OP_LOAD:
+        case OP_STORE:
         case OP_DPUSH:
         case OP_RPUSH:
         case OP_DPOP:
@@ -446,26 +448,32 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
     // Handle the second argument
     switch (code)
     {
-        case OP_LOAD0:
-            strcat(buf, ", ");
-            disassemble_register(sim, buf, addr);
-            break;
+        case OP_LOAD:
+            // TODO - break this out to a function
+            switch (mode)
+            {
+                case ADDR_MODE0:
+                    strcat(buf, ", ");
+                    disassemble_register(sim, buf, addr);
+                    break;
 
-        case OP_LOAD1:
-            strcat(buf, ", ");
-            disassemble_address(sim, buf, addr);
-            break;
+                case ADDR_MODE1:
+                    strcat(buf, ", ");
+                    disassemble_address(sim, buf, addr);
+                    break;
 
-        case OP_LOAD2:
-            strcat(buf, ", (");
-            disassemble_register(sim, buf, addr);
-            strcat(buf, ")");
-            break;
+                case ADDR_MODE2:
+                    strcat(buf, ", (");
+                    disassemble_register(sim, buf, addr);
+                    strcat(buf, ")");
+                    break;
 
-        case OP_LOAD3:
-            strcat(buf, ", (");
-            disassemble_address(sim, buf, addr);
-            strcat(buf, ")");
+                case ADDR_MODE3:
+                    strcat(buf, ", (");
+                    disassemble_address(sim, buf, addr);
+                    strcat(buf, ")");
+                    break;
+            }
             break;
     }
 

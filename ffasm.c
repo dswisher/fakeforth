@@ -13,7 +13,6 @@
 
 #define SEPS " \t,"
 
-
 typedef struct ArgCount
 {
     unsigned char opcode;
@@ -24,10 +23,8 @@ ArgCount arg_counts[] =
 {
     { OP_JMP, 1 },
     { OP_GO, 1 },
-    { OP_LOAD0, 2 },
-    { OP_LOAD1, 2 },
-    { OP_LOAD2, 2 },
-    { OP_LOAD3, 2 },
+    { OP_LOAD, 2 },
+    { OP_STORE, 2 },
     { OP_DPUSH, 1 },
     { OP_RPUSH, 1 },
     { OP_DPOP, 1 },
@@ -120,6 +117,7 @@ void strip_comments(char *str)
         c++;
     }
 
+    // TODO - handle a semi-colon inside a string
     if (*c == ';')
     {
         *c = 0;
@@ -386,8 +384,80 @@ char *deref_argument(char *arg)
 }
 
 
-// TODO - switch parameter order
-bool parse_opcode(char *opcode, Context *context)
+int parse_address_mode(Context *context, char *arg)
+{
+    if (is_register(arg))
+    {
+        return ADDR_MODE0;
+    }
+
+    if (is_literal(arg) || arg[0] != '(')
+    {
+        return ADDR_MODE1;
+    }
+
+    if (arg[0] == '(' && strrchr(arg, ')') != NULL)
+    {
+        char *inner = deref_argument(arg);
+        if (is_register(inner))
+        {
+            return ADDR_MODE2;
+        }
+        else
+        {
+            return ADDR_MODE3;
+        }
+    }
+
+    print_error(context, "Unknown addressing mode: |%s|\n", arg);
+    return 0xFF;
+}
+
+
+bool add_by_mode(Context *context, int mode, char *arg)
+{
+    char *inner;
+    switch (mode)
+    {
+        case ADDR_MODE0:
+            return add_register(context, arg);
+
+        case ADDR_MODE1:
+            if (arg[0] == '$')
+            {
+                add_literal(context, arg);
+                return TRUE;
+            }
+            else
+            {
+                add_label_ref(context, arg);
+                return TRUE;
+            }
+
+        case ADDR_MODE2:
+            inner = deref_argument(arg);
+            return add_register(context, inner);
+
+        case ADDR_MODE3:
+            inner = deref_argument(arg);
+            if (inner[0] == '$')
+            {
+                add_literal(context, inner);
+                return TRUE;
+            }
+            else
+            {
+                add_label_ref(context, inner);
+                return TRUE;
+            }
+    }
+
+    print_error(context, "Unhandled address mode: %d\n", mode);
+    return FALSE;
+}
+
+
+bool parse_opcode(Context *context, char *opcode)
 {
     char buf[MAXCHAR];
     char *argv[MAXARGS];
@@ -425,62 +495,48 @@ bool parse_opcode(char *opcode, Context *context)
         return FALSE;
     }
 
-    // For LOAD, look at the addressing mode and adjust the code
-    if ((code & 0xF0) == MASK_LOAD)
+    // Determine the addressing mode
+    int mode = ADDR_MODE0;  // default for most opcodes
+    switch (code)
     {
-        // TODO - break this out to a function that returns the mode, then switch on that
-        if (is_register(argv[2]))
-        {
-            code = OP_LOAD0;
-        }
-        else if (is_literal(argv[2]) || argv[2][0] != '(')
-        {
-            code = OP_LOAD1;
-        }
-        else if (argv[2][0] == '(' && strrchr(argv[2], ')') != NULL)
-        {
-            inner = deref_argument(argv[2]);
-            if (is_register(inner))
-            {
-                code = OP_LOAD2;
-            }
-            else
-            {
-                code = OP_LOAD3;
-            }
-        }
-        else
-        {
-            print_error(context, "Unknown addressing mode: |%s|\n", argv[2]);
-            return FALSE;
-        }
+        case OP_LOAD:
+        case OP_STORE:
+            mode = parse_address_mode(context, argv[2]);
+            break;
     }
 
-    add_byte(context, code);
+    if (mode == 0xFF)
+    {
+        return FALSE;
+    }
+
+    // Write the op-code and addressing mode
+    add_byte(context, code | mode);
 
     // Handle the first argument
     switch (code)
     {
         case OP_JMP:
+            // TODO - use addressing mode
             add_label_ref(context, argv[1]);
             break;
 
         case OP_GO:
+            // TODO - get rid of this; use JMP with proper addressing mode instead
             if (!add_register(context, argv[1]))
             {
                 return FALSE;
             }
             break;
 
-        case OP_LOAD0:
-        case OP_LOAD1:
-        case OP_LOAD2:
-        case OP_LOAD3:
+        case OP_LOAD:
             if (!add_register(context, argv[1]))
             {
                 return FALSE;
             }
             break;
+
+        // TODO - OP_STORE
 
         case OP_DPUSH:
         case OP_RPUSH:
@@ -498,41 +554,10 @@ bool parse_opcode(char *opcode, Context *context)
     // Handle the second argument (for codes that have a second argument)
     switch (code)
     {
-        case OP_LOAD0:
-            if (!add_register(context, argv[2]))
+        case OP_LOAD:
+            if (!add_by_mode(context, mode, argv[2]))
             {
                 return FALSE;
-            }
-            break;
-
-        case OP_LOAD1:
-            if (argv[2][0] == '$')
-            {
-                add_literal(context, argv[2]);
-            }
-            else
-            {
-                add_label_ref(context, argv[2]);
-            }
-            break;
-
-        case OP_LOAD2:
-            inner = deref_argument(argv[2]);
-            if (!add_register(context, inner))
-            {
-                return FALSE;
-            }
-            break;
-
-        case OP_LOAD3:
-            inner = deref_argument(argv[2]);
-            if (inner[0] == '$')
-            {
-                add_literal(context, inner);
-            }
-            else
-            {
-                add_label_ref(context, inner);
             }
             break;
     }
@@ -575,7 +600,7 @@ bool parse_line(char *str, Context *context)
         return TRUE;
     }
 
-    return parse_opcode(opcode, context);
+    return parse_opcode(context, opcode);
 }
 
 
