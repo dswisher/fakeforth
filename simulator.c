@@ -183,6 +183,13 @@ StackNode *push_register(Simulator *sim, unsigned char reg, StackNode *next)
 }
 
 
+void sim_write_word(Simulator *sim, unsigned short addr, unsigned short value)
+{
+    sim->memory[addr] = value >> 8;         // hi byte
+    sim->memory[addr + 1] = value & 0xFF;   // lo byte
+}
+
+
 unsigned short sim_read_word(Simulator *sim, unsigned short addr)
 {
     unsigned char hi_byte = sim->memory[addr];
@@ -235,8 +242,33 @@ void execute_load(Simulator *sim, unsigned char mode)
 
 void execute_store(Simulator *sim, unsigned char mode)
 {
-    printf("execute_store is not yet implemented. Halting.\n");
-    sim->halted = TRUE;
+    unsigned char reg1;
+    unsigned char reg2;
+
+    switch (mode)
+    {
+        case ADDR_MODE0:
+            reg1 = sim->memory[sim->pc++];
+            reg2 = sim->memory[sim->pc++];
+            set_register(sim, reg2, get_register(sim, reg1));
+            break;
+
+        case ADDR_MODE1:
+            printf("Unhandled STORE address mode: %d\n", mode);
+            sim->halted = TRUE;
+            break;
+
+        case ADDR_MODE2:
+            reg1 = sim->memory[sim->pc++];
+            reg2 = sim->memory[sim->pc++];
+            sim_write_word(sim, get_register(sim, reg2), get_register(sim, reg1));
+            break;
+
+        case ADDR_MODE3:
+            reg1 = sim->memory[sim->pc++];
+            sim_write_word(sim, consume_word(sim), get_register(sim, reg1));
+            break;
+    }
 }
 
 

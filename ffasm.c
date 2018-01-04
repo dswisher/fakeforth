@@ -483,8 +483,16 @@ bool parse_opcode(Context *context, char *opcode)
     switch (code)
     {
         case OP_LOAD:
+            mode = parse_address_mode(context, argv[2]);
+            break;
+
         case OP_STORE:
             mode = parse_address_mode(context, argv[2]);
+            if (mode == ADDR_MODE1)
+            {
+                print_error(context, "Unsupported address mode %d for STORE.\n", mode);
+                return FALSE;
+            }
             break;
     }
 
