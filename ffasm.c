@@ -358,22 +358,6 @@ bool is_literal(char *str)
 }
 
 
-// TODO - remove this?
-bool is_symbol(Context *context, char *str)
-{
-    Symbol *symbol;
-    for (symbol = context->symbols; symbol != NULL; symbol = symbol->next)
-    {
-        if (!strcmp(symbol->name, str))
-        {
-            return TRUE;
-        }
-    }
-
-    return FALSE;
-}
-
-
 char *deref_argument(char *arg)
 {
     static char inner[MAXCHAR];
@@ -461,7 +445,6 @@ bool parse_opcode(Context *context, char *opcode)
 {
     char buf[MAXCHAR];
     char *argv[MAXARGS];
-    char *inner;
     int argc = 0;
     strcpy(buf, opcode);
     char *token = strtok(buf, SEPS);
@@ -530,14 +513,7 @@ bool parse_opcode(Context *context, char *opcode)
             break;
 
         case OP_LOAD:
-            if (!add_register(context, argv[1]))
-            {
-                return FALSE;
-            }
-            break;
-
-        // TODO - OP_STORE
-
+        case OP_STORE:
         case OP_DPUSH:
         case OP_RPUSH:
         case OP_DPOP:
@@ -555,6 +531,7 @@ bool parse_opcode(Context *context, char *opcode)
     switch (code)
     {
         case OP_LOAD:
+        case OP_STORE:
             if (!add_by_mode(context, mode, argv[2]))
             {
                 return FALSE;

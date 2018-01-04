@@ -201,6 +201,45 @@ unsigned short consume_word(Simulator *sim)
 }
 
 
+void execute_load(Simulator *sim, unsigned char mode)
+{
+    unsigned char reg1;
+    unsigned char reg2;
+
+    switch (mode)
+    {
+        case ADDR_MODE0:
+            reg1 = sim->memory[sim->pc++];
+            reg2 = sim->memory[sim->pc++];
+            set_register(sim, reg1, get_register(sim, reg2));
+            break;
+
+        case ADDR_MODE1:
+            reg1 = sim->memory[sim->pc++];
+            set_register(sim, reg1, consume_word(sim));
+            break;
+
+        case ADDR_MODE2:
+            reg1 = sim->memory[sim->pc++];
+            reg2 = sim->memory[sim->pc++];
+            set_register(sim, reg1, sim_read_word(sim, get_register(sim, reg2)));
+            break;
+
+        case ADDR_MODE3:
+            reg1 = sim->memory[sim->pc++];
+            set_register(sim, reg1, sim_read_word(sim, consume_word(sim)));
+            break;
+    }
+}
+
+
+void execute_store(Simulator *sim, unsigned char mode)
+{
+    printf("execute_store is not yet implemented. Halting.\n");
+    sim->halted = TRUE;
+}
+
+
 void sim_step(Simulator *sim)
 {
     if (sim->halted)
@@ -240,29 +279,13 @@ void sim_step(Simulator *sim)
             sim->pc = sim_read_word(sim, get_register(sim, reg));
             break;
 
-/*
-        case OP_LOAD0:
-            reg = sim->memory[sim->pc++];
-            reg2 = sim->memory[sim->pc++];
-            set_register(sim, reg, get_register(sim, reg2));
+        case OP_LOAD:
+            execute_load(sim, mode);
             break;
 
-        case OP_LOAD1:
-            reg = sim->memory[sim->pc++];
-            set_register(sim, reg, consume_word(sim));
+        case OP_STORE:
+            execute_store(sim, mode);
             break;
-
-        case OP_LOAD2:
-            reg = sim->memory[sim->pc++];
-            reg2 = sim->memory[sim->pc++];
-            set_register(sim, reg, sim_read_word(sim, get_register(sim, reg2)));
-            break;
-
-        case OP_LOAD3:
-            reg = sim->memory[sim->pc++];
-            set_register(sim, reg, sim_read_word(sim, consume_word(sim)));
-            break;
-*/
 
         case OP_DPUSH:
             reg = sim->memory[sim->pc++];
@@ -449,7 +472,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
     switch (code)
     {
         case OP_LOAD:
-            // TODO - break this out to a function
+        case OP_STORE:
             switch (mode)
             {
                 case ADDR_MODE0:
