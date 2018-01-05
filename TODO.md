@@ -3,11 +3,11 @@
 * REDO opcodes: 6 bytes for op-code, 2 bytes for address mode
 * Get rid of GO and replace with JMP with proper address modes
 * Forth
-  * Implement `LIT`, `!` and `@`
   * Implement `EMIT`, which requires new PUTC opcode
   * Implement `KEY`, which requires a bunch of new opcodes
   * Implement `INTERPRET`
 * Debugger:
+  * Implement breakpoints, restart
   * Keep track of the last PC and show that one bit of history when disassembling
   * In `print`, show symbols that match register values
   * Implement reverse symbol lookup word (find symbol given address)
@@ -25,6 +25,8 @@
 ## DONE ##
 
 * ~~Change sample to do 2DUP, which calls DUP, to see if nesting works~~
+* ~~Forth~~
+  * ~~Implement `LIT`, `!` and `@`~~
 * Debugger:
   * ~~Implement word to find a dictionary entry given a string on the stack~~
   * ~~Allow labels to be pushed onto the stack; perhaps with a way to quote them (so "next" can be used as a label, too)~~

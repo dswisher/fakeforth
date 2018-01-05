@@ -55,9 +55,9 @@ QUIT:   .word DOCOL             ; codeword - the interpreter
         .word FETCH
         .word TDUP
         .word LIT
-        .word _dad
+        .word $F00
         .word LIT
-        .word $FOO
+        .word _dad
         .word STORE
         .word STOP
 
