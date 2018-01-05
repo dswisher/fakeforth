@@ -28,9 +28,7 @@ DOCOL:  RPUSH IP                ; We're nesting down, so save the IP for when we
 next:   LOAD CA, (IP)
         INC IP
         INC IP                  ; TODO - replace with ADD?
-        ; TODO - implement indirect JMP
-        ; JMP (CA)
-        GO CA   ; TODO - get rid of GO!
+        JMP (CA)
 
 
 ; ------------------
@@ -48,8 +46,6 @@ QUIT_head:
         .ascii "QUIT"
 QUIT:   .word DOCOL             ; codeword - the interpreter
         ; TODO - need real definition of QUIT here! This is just test code, for now.
-        .word LIT
-        .word $F00
         .word LIT
         .word _dad
         .word FETCH

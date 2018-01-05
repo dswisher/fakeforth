@@ -14,8 +14,6 @@
 #define OP_LOAD     0x24
 #define OP_STORE    0x28    // TODO - new - implement this!
 
-#define OP_GO       0xF0    // TODO - hack until JMP modes done
-
 #define OP_HLT      0xFC
 
 // Address modes - least-significant two bits

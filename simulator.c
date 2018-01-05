@@ -215,24 +215,24 @@ void execute_load(Simulator *sim, unsigned char mode)
 
     switch (mode)
     {
-        case ADDR_MODE0:
+        case ADDR_MODE0:    // LOAD a, b
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
             set_register(sim, reg1, get_register(sim, reg2));
             break;
 
-        case ADDR_MODE1:
+        case ADDR_MODE1:    // LOAD a, val
             reg1 = sim->memory[sim->pc++];
             set_register(sim, reg1, consume_word(sim));
             break;
 
-        case ADDR_MODE2:
+        case ADDR_MODE2:    // LOAD a, (b)
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
             set_register(sim, reg1, sim_read_word(sim, get_register(sim, reg2)));
             break;
 
-        case ADDR_MODE3:
+        case ADDR_MODE3:    // LOAD a, (addr)
             reg1 = sim->memory[sim->pc++];
             set_register(sim, reg1, sim_read_word(sim, consume_word(sim)));
             break;
@@ -247,26 +247,55 @@ void execute_store(Simulator *sim, unsigned char mode)
 
     switch (mode)
     {
-        case ADDR_MODE0:
+        case ADDR_MODE0:    // STORE a, b
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
             set_register(sim, reg2, get_register(sim, reg1));
             break;
 
-        case ADDR_MODE1:
+        case ADDR_MODE1:    // STORE a, $N - invalid
             printf("Unhandled STORE address mode: %d\n", mode);
             sim->halted = TRUE;
             break;
 
-        case ADDR_MODE2:
+        case ADDR_MODE2:    // STORE a, (b)
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
             sim_write_word(sim, get_register(sim, reg2), get_register(sim, reg1));
             break;
 
-        case ADDR_MODE3:
+        case ADDR_MODE3:    // STORE a, (addr)
             reg1 = sim->memory[sim->pc++];
             sim_write_word(sim, consume_word(sim), get_register(sim, reg1));
+            break;
+    }
+}
+
+
+void execute_jump(Simulator *sim, unsigned char mode)
+{
+    unsigned char reg;
+    unsigned short addr;
+
+    switch (mode)
+    {
+        case ADDR_MODE0:    // JMP a
+            reg = sim->memory[sim->pc++];
+            sim->pc = get_register(sim, reg);
+            break;
+
+        case ADDR_MODE1:    // JMP addr
+            sim->pc = consume_word(sim);
+            break;
+
+        case ADDR_MODE2:    // JMP (a)
+            reg = sim->memory[sim->pc++];
+            sim->pc = sim_read_word(sim, get_register(sim, reg));
+            break;
+
+        case ADDR_MODE3:    // JMP (addr)
+            addr = consume_word(sim);
+            sim->pc = sim_read_word(sim, addr);
             break;
     }
 }
@@ -283,8 +312,6 @@ void sim_step(Simulator *sim)
     unsigned short loc = sim->pc;
     unsigned char opcode = sim->memory[sim->pc++];
     unsigned char reg;
-    unsigned char hi_byte;
-    unsigned char lo_byte;
 
     unsigned char code = opcode & ~0x03;
     unsigned char mode = opcode & 0x03;
@@ -301,14 +328,7 @@ void sim_step(Simulator *sim)
             break;
 
         case OP_JMP:
-            hi_byte = sim->memory[sim->pc];
-            lo_byte = sim->memory[sim->pc + 1];
-            sim->pc = (hi_byte << 8) + lo_byte;
-            break;
-
-        case OP_GO:
-            reg = sim->memory[sim->pc++];
-            sim->pc = sim_read_word(sim, get_register(sim, reg));
+            execute_jump(sim, mode);
             break;
 
         case OP_LOAD:
@@ -478,13 +498,30 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
     switch (code)
     {
         case OP_JMP:
-            strcat(buf, " ");
-            disassemble_address(sim, buf, addr);
-            break;
+            switch (mode)
+            {
+                case ADDR_MODE0:
+                    strcat(buf, " ");
+                    disassemble_register(sim, buf, addr);
+                    break;
 
-        case OP_GO:
-            strcat(buf, " ");
-            disassemble_register(sim, buf, addr);
+                case ADDR_MODE1:
+                    strcat(buf, " ");
+                    disassemble_address(sim, buf, addr);
+                    break;
+
+                case ADDR_MODE2:
+                    strcat(buf, " (");
+                    disassemble_register(sim, buf, addr);
+                    strcat(buf, ")");
+                    break;
+
+                case ADDR_MODE3:
+                    strcat(buf, " (");
+                    disassemble_address(sim, buf, addr);
+                    strcat(buf, ")");
+                    break;
+            }
             break;
 
         case OP_LOAD:

@@ -22,7 +22,6 @@ typedef struct ArgCount
 ArgCount arg_counts[] =
 {
     { OP_JMP, 1 },
-    { OP_GO, 1 },
     { OP_LOAD, 2 },
     { OP_STORE, 2 },
     { OP_DPUSH, 1 },
@@ -47,6 +46,7 @@ typedef struct Options
 typedef struct SymbolRef
 {
     unsigned short location;
+    int line_number;
     struct SymbolRef *next;
 } SymbolRef;
 
@@ -232,6 +232,7 @@ void add_label_ref(Context *context, char *name)
     SymbolRef *ref = malloc(sizeof(SymbolRef));
     ref->location = context->origin;
     ref->next = symbol->refs;
+    ref->line_number = context->line_number;
     symbol->refs = ref;
 
     add_byte(context, 0xFF);
@@ -482,6 +483,10 @@ bool parse_opcode(Context *context, char *opcode)
     int mode = ADDR_MODE0;  // default for most opcodes
     switch (code)
     {
+        case OP_JMP:
+            mode = parse_address_mode(context, argv[1]);
+            break;
+
         case OP_LOAD:
             mode = parse_address_mode(context, argv[2]);
             break;
@@ -508,13 +513,7 @@ bool parse_opcode(Context *context, char *opcode)
     switch (code)
     {
         case OP_JMP:
-            // TODO - use addressing mode
-            add_label_ref(context, argv[1]);
-            break;
-
-        case OP_GO:
-            // TODO - get rid of this; use JMP with proper addressing mode instead
-            if (!add_register(context, argv[1]))
+            if (!add_by_mode(context, mode, argv[1]))
             {
                 return FALSE;
             }
@@ -596,12 +595,23 @@ bool update_references(Context *context)
     bool ok = TRUE;
     Symbol *symbol;
     SymbolRef *ref;
+    char lines[MAXCHAR];
+    char scratch[20];
     for (symbol = context->symbols; symbol != NULL; symbol = symbol->next)
     {
         if (symbol->refs != NULL && symbol->location == 0xFFFF)
         {
-            // TODO - extract the line number(s) from the refs
-            printf("Undefined symbol: %s\n", symbol->name);
+            strcpy(lines, "");
+            for (ref = symbol->refs; ref != NULL; ref = ref->next)
+            {
+                if (strlen(lines) > 0)
+                {
+                    strcat(lines, ", ");
+                }
+                sprintf(scratch, "%d", ref->line_number);
+                strcat(lines, scratch);
+            }
+            printf("Undefined symbol: %s, line %s\n", symbol->name, lines);
             ok = FALSE;
             continue;
         }

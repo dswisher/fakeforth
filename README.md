@@ -22,4 +22,9 @@ A toy implementation of Forth, using a homebrew simulated machine.
   * `STORE a, (label)` - mode 3 - store the contents of a into the memory word at label
   * `STORE a, ($N)` - mode 3 - store the contents of a into the memory word at N
   * Note that mode 1 does not make sense and is not supported.
+* JMP addressing modes, using two bits for mode. Given register a:
+  * `JMP a` - mode 0 - jump to the address contained in a
+  * `JMP $N` - mode 1 - jump to address N
+  * `JMP (a)` - mode 2 - jump to the address contained in the memory word pointed to by a
+  * `JUMP ($N)` - mode 3 - jump to the address contained in the memory pointed to by N
 
