@@ -2,7 +2,7 @@
 
 A toy implementation of Forth, using a homebrew simulated machine.
 
-* Inspiration: [Jones Forth](https://github.com/AlexandreAbreu/jonesforth)
+* Inspiration: [Jones Forth](https://github.com/AlexandreAbreu/jonesforth), [pijFORTHos](https://github.com/organix/pijFORTHos)
 * Goal? [Forth Standard](https://forth-standard.org/)
 
 
