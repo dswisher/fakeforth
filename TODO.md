@@ -5,7 +5,7 @@
   * Implement `KEY`, which requires a bunch of new opcodes
   * Implement `INTERPRET`
 * Debugger:
-  * Implement breakpoints, restart
+  * Implement breakpoints and a restart command
   * Keep track of the last PC and show that one bit of history when disassembling
   * In `print`, show symbols that match register values
   * Implement reverse symbol lookup word (find symbol given address)
@@ -14,7 +14,7 @@
   * Tie source code (via map file?) into debugger and show via `list`
   * Make aliases into aliases ("p" for "print") rather than defining the word multiple times
 * Assembler:
-  * Write pseudo to create Forth dictionary header
+  * Add psuedo ops to move between data and code areas
   * Write map (human readable assembled output) to a file
   * If a label is duplicated, issue an error
   * Implement multi-line comments
@@ -42,6 +42,7 @@
   * ~~implement disassembly (list) command~~
   * ~~clean up command handling (use a lookup table or some such)~~
 * Assembler:
+  * ~~Write pseudo to create Forth dictionary header~~
   * ~~Write symbols to a file~~
   * ~~If a label is undefined, issue an error~~
   * ~~Add line numbers to assembler errors~~

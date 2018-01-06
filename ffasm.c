@@ -64,9 +64,10 @@ typedef struct Context
 {
     char *memory;
     unsigned short origin;
-    Symbol *symbols;    // linked list of symbols
+    Symbol *symbols;            // linked list of symbols
     int num_symbols;
     int line_number;
+    unsigned short last_dict;   // address of last dict entry
 } Context;
 
 
@@ -251,6 +252,16 @@ void add_string(Context *context, char *str)
 }
 
 
+char *strip_quotes(char *s)
+{
+    static char buf[MAXCHAR];
+    strcpy(buf, s + 1);
+    char *pos = strrchr(buf, '"');
+    *pos = 0;
+    return buf;
+}
+
+
 bool parse_pseudo(Context *context, int argc, char *argv[])
 {
     if (!strcmp(argv[0], ".word"))
@@ -275,12 +286,33 @@ bool parse_pseudo(Context *context, int argc, char *argv[])
 
     if (!strcmp(argv[0], ".ascii"))
     {
-        // Strip quotes
-        char buf[MAXCHAR];
-        strcpy(buf, &(argv[1][1]));
-        char *pos = strrchr(buf, '"');
-        *pos = 0;
-        add_string(context, buf);
+        add_string(context, strip_quotes(argv[1]));
+        return TRUE;
+    }
+
+    if (!strcmp(argv[0], ".dict"))
+    {
+        char *name = strip_quotes(argv[1]);
+        unsigned char len = strlen(name);
+
+        // Save the current addr
+        unsigned short addr = context->origin;
+
+        // Set up the entry
+        add_word(context, context->last_dict);  // pointer to prev word
+        add_byte(context, len);                 // length - TODO - need flags for immediate and whatnot!
+        add_string(context, name);
+
+        // Remember where to link the next word
+        context->last_dict = addr;
+
+        return TRUE;
+    }
+
+    if (!strcmp(argv[0], ".lastdict"))
+    {
+        // Equivalent to ".word last_dict"
+        add_word(context, context->last_dict);
         return TRUE;
     }
 
@@ -638,6 +670,7 @@ bool assemble(FILE *in, Options *options)
     context->symbols = NULL;
     context->num_symbols = 0;
     context->line_number = 0;
+    context->last_dict = 0;
 
     puts("Assembling...");
     while (fgets(str, MAXCHAR, in) != NULL)

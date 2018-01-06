@@ -39,11 +39,14 @@ cold_start:                     ; colon-word w/o a header or codeword
         .word QUIT
 
 
+; --- STOP - headerless hack word to halt - TODO - remove this
+STOP:   .word STOP_code
+STOP_code:
+        HLT
+
+
 ; --- QUIT
-QUIT_head:
-        .word $0                ; link to previous word (none, in this case)
-        .byte $4                ; length of word - TODO - flags?
-        .ascii "QUIT"
+        .dict "QUIT"
 QUIT:   .word DOCOL             ; codeword - the interpreter
         ; TODO - need real definition of QUIT here! This is just test code, for now.
         .word LIT
@@ -57,14 +60,9 @@ QUIT:   .word DOCOL             ; codeword - the interpreter
         .word STORE
         .word STOP
 
-_dad:   .word $DAD
-
 
 ; --- DUP
-DUP_head:
-        .word QUIT_head         ; point back to QUIT
-        .byte $3
-        .ascii "DUP"
+        .dict "DUP"
 DUP:    .word DUP_code
 DUP_code:
         DPOP X                  ; get data item currently on top of stack
@@ -74,10 +72,7 @@ DUP_code:
 
 
 ; --- 2DUP - testing - TODO - this is NOT the correct, standard definition!
-TDUP_head:
-        .word DUP_head          ; link to previous word
-        .byte $4                ; length of word - TODO - flags?
-        .ascii "2DUP"
+        .dict "2DUP"
 TDUP:   .word DOCOL             ; codeword - the interpreter
         .word DUP
         .word DUP
@@ -85,29 +80,18 @@ TDUP:   .word DOCOL             ; codeword - the interpreter
 
 
 ; --- EXIT - tacked onto end of all high-level words
-EXIT_head:
-        .word TDUP_head         ; link to previous word
-        .byte $4                ; length of word - TODO - flags?
-        .ascii "EXIT"
-EXIT:   .word EXIT_code         ; codeword
+        .dict "EXIT"
+EXIT:   .word EXIT_code
 EXIT_code:
         RPOP IP
         JMP next
 
 
-; --- STOP - headerless hack word to halt - TODO - remove this
-STOP:   .word STOP_code
-STOP_code:
-        HLT
-
 ; --- LIT
 
 ; TODO - should this be headerless? I don't see it in the standard!
-LIT_head:
-        .word EXIT_head         ; link to previous word
-        .byte $1                ; length of word
-        .ascii "LIT"
-LIT:  .word LIT_code
+        .dict "LIT"
+LIT:    .word LIT_code
 LIT_code:
         LOAD X, (IP)
         INC IP
@@ -117,11 +101,7 @@ LIT_code:
 
 
 ; -- STORE
-
-STORE_head:
-        .word LIT_head          ; link to previous word
-        .byte $1                ; length of word
-        .ascii "!"
+        .dict "!"
 STORE:  .word STORE_code
 STORE_code:
         DPOP X                  ; address to store
@@ -131,11 +111,7 @@ STORE_code:
 
 
 ; --- FETCH
-
-FETCH_head:
-        .word STORE_head        ; link to previous word
-        .byte $1                ; length of word
-        .ascii "@"
+        .dict "@"
 FETCH:  .word FETCH_code
 FETCH_code:
         DPOP X                  ; address to fetch
@@ -143,23 +119,29 @@ FETCH_code:
         DPUSH Y                 ; and put it on the stack
         JMP next
 
+
 ; --- Built-in Variables
 
 ; TODO - STATE
 ; TODO - HERE
 ; TODO - BASE
 
-LATEST_head:
-        .word FETCH_head        ; link to previous word
-        .byte $6                ; length of word - TODO - flags?
-        .ascii "LATEST"
+        .dict "LATEST"
 LATEST: .word LATEST_code       ; codeword
 LATEST_code:
         LOAD X, var_LATEST
         DPUSH X                 ; TODO - DPUSH needs addressing modes!
         JMP next
+
+; ------------------
+; Data, buffers, etc.
+; ------------------
+
+_dad:   .word $DAD              ; TODO - remove this
+
 var_LATEST:
-        .word LATEST_head       ; must be the most recent dictionary entry!
+        .lastdict
+        ; .word LATEST_head       ; must be the most recent dictionary entry!
 
 
 
