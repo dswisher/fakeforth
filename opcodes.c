@@ -23,6 +23,7 @@ NameMap name_map[] =
     { "DEC", OP_DEC },
     { "GETC", OP_GETC },
     { "PUTC", OP_PUTC },
+    { "ADD", OP_ADD },
     { "HLT", OP_HLT }
 };
 

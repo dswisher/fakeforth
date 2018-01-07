@@ -272,6 +272,38 @@ void execute_store(Simulator *sim, unsigned char mode)
 }
 
 
+void execute_add(Simulator *sim, unsigned char mode)
+{
+    unsigned char reg1;
+    unsigned char reg2;
+
+    switch (mode)
+    {
+        case ADDR_MODE0:    // ADD a, b
+            reg1 = sim->memory[sim->pc++];
+            reg2 = sim->memory[sim->pc++];
+            set_register(sim, reg1, get_register(sim, reg1) + get_register(sim, reg2));
+            break;
+
+        case ADDR_MODE1:    // ADD a, val 
+            reg1 = sim->memory[sim->pc++];
+            set_register(sim, reg1, get_register(sim, reg1) + consume_word(sim));
+            break;
+
+        case ADDR_MODE2:    // ADD a, (b)
+            reg1 = sim->memory[sim->pc++];
+            reg2 = sim->memory[sim->pc++];
+            set_register(sim, reg1, get_register(sim, reg1) + sim_read_word(sim, get_register(sim, reg2)));
+            break;
+
+        case ADDR_MODE3:    // ADD a, (addr)
+            reg1 = sim->memory[sim->pc++];
+            set_register(sim, reg1, get_register(sim, reg1) + sim_read_word(sim, consume_word(sim)));
+            break;
+    }
+}
+
+
 void execute_jump(Simulator *sim, unsigned char mode)
 {
     unsigned char reg;
@@ -333,6 +365,10 @@ void sim_step(Simulator *sim)
 
         case OP_LOAD:
             execute_load(sim, mode);
+            break;
+
+        case OP_ADD:
+            execute_add(sim, mode);
             break;
 
         case OP_STORE:
@@ -543,6 +579,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_INC:
         case OP_DEC:
         case OP_PUTC:
+        case OP_ADD:
             strcat(buf, " ");
             disassemble_register(sim, buf, addr);
             break;
@@ -553,6 +590,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
     {
         case OP_LOAD:
         case OP_STORE:
+        case OP_ADD:
             switch (mode)
             {
                 case ADDR_MODE0:

@@ -13,8 +13,7 @@ _start:
 ;   %eax -> CA - true?
 ; ------------------
 DOCOL:  RPUSH IP                ; We're nesting down, so save the IP for when we're done
-        INC CA                  ; Move CA to point to the...
-        INC CA                  ; ...first data word
+        ADD CA, $2              ; Move CA to point to the first data word
         LOAD IP, CA             ; Put data word in IP
         JMP next
 
@@ -26,8 +25,7 @@ DOCOL:  RPUSH IP                ; We're nesting down, so save the IP for when we
 ;       jmp *(%eax) - jumps to address at memory address pointed to by eax
 ; ------------------
 next:   LOAD CA, (IP)
-        INC IP
-        INC IP                  ; TODO - replace with ADD?
+        ADD IP, $2
         JMP (CA)
 
 
@@ -39,19 +37,31 @@ cold_start:                     ; colon-word w/o a header or codeword
         .word QUIT
 
 
-; --- STOP - headerless hack word to halt - TODO - remove this
-STOP:   .word STOP_code
-STOP_code:
-        HLT
-
-
 ; --- QUIT
         .dict "QUIT"
 QUIT:   .word DOCOL             ; codeword - the interpreter
-        ; TODO - need real definition of QUIT here! This is just test code, for now.
+        ; TODO - clear the return stack
+        .word INTERPRET
+        .word BRANCH
+        .word $-4
+
+
+; --- INTERPRET
+
+INTERPRET:
+        .word DOCOL
+        ; TODO - need real definition of INTERPRET
         .word KEY
         .word EMIT
-        .word STOP
+        .word EXIT
+
+
+; --- BRANCH
+        .dict "BRANCH"          ; TODO - should this be headerless?
+BRANCH: .word BRANCH_code
+BRANCH_code:
+        ADD IP, (IP)
+        JMP next
 
 
 ; --- DUP
@@ -87,8 +97,7 @@ EXIT_code:
 LIT:    .word LIT_code
 LIT_code:
         LOAD X, (IP)
-        INC IP
-        INC IP
+        ADD IP, $2
         DPUSH X
         JMP next
 
