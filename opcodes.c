@@ -21,6 +21,7 @@ NameMap name_map[] =
     { "RPOP", OP_RPOP },
     { "INC", OP_INC },
     { "DEC", OP_DEC },
+    { "GETC", OP_GETC },
     { "PUTC", OP_PUTC },
     { "HLT", OP_HLT }
 };

@@ -369,6 +369,11 @@ void sim_step(Simulator *sim)
             set_register(sim, reg, get_register(sim, reg) - 1);
             break;
 
+        case OP_GETC:
+            reg = sim->memory[sim->pc++];
+            set_register(sim, reg, fgetc(stdin));
+            break;
+
         case OP_PUTC:
             reg = sim->memory[sim->pc++];
             fputc(get_register(sim, reg), stdout);

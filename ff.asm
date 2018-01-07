@@ -49,8 +49,7 @@ STOP_code:
         .dict "QUIT"
 QUIT:   .word DOCOL             ; codeword - the interpreter
         ; TODO - need real definition of QUIT here! This is just test code, for now.
-        .word LIT
-        .word $5A               ; ASCII 'Z'
+        .word KEY
         .word EMIT
         .word STOP
 
@@ -114,6 +113,15 @@ FETCH_code:
         JMP next
 
 
+; --- KEY
+        .dict "KEY"
+KEY:   .word KEY_code
+KEY_code:
+        GETC X                  ; read character from stdin...
+        DPUSH X                 ; ...and push it on the stack
+        JMP next
+
+
 ; --- EMIT
         .dict "EMIT"
 EMIT:   .word EMIT_code
@@ -121,6 +129,7 @@ EMIT_code:
         DPOP X                  ; get character to print...
         PUTC X                  ; ...and print it.
         JMP next
+
 
 ; --- Built-in Variables
 

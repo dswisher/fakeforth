@@ -1,7 +1,6 @@
 ## TODO ##
 
 * Forth
-  * Implement `KEY`, which requires a bunch of new opcodes
   * Implement `INTERPRET`
 * Debugger:
   * Implement breakpoints and a restart command
@@ -25,6 +24,7 @@
 * ~~Get rid of GO and replace with JMP with proper address modes~~
 * ~~Change sample to do 2DUP, which calls DUP, to see if nesting works~~
 * ~~Forth~~
+  * ~~Implement `KEY`, which requires new GETC opcode~~
   * ~~Implement `EMIT`, which requires new PUTC opcode~~
   * ~~Implement `LIT`, `!` and `@`~~
 * Debugger:
