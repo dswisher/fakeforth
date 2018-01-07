@@ -50,14 +50,8 @@ STOP_code:
 QUIT:   .word DOCOL             ; codeword - the interpreter
         ; TODO - need real definition of QUIT here! This is just test code, for now.
         .word LIT
-        .word _dad
-        .word FETCH
-        .word TDUP
-        .word LIT
-        .word $F00
-        .word LIT
-        .word _dad
-        .word STORE
+        .word $5A               ; ASCII 'Z'
+        .word EMIT
         .word STOP
 
 
@@ -119,6 +113,14 @@ FETCH_code:
         DPUSH Y                 ; and put it on the stack
         JMP next
 
+
+; --- EMIT
+        .dict "EMIT"
+EMIT:   .word EMIT_code
+EMIT_code:
+        DPOP X                  ; get character to print...
+        PUTC X                  ; ...and print it.
+        JMP next
 
 ; --- Built-in Variables
 

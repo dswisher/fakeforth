@@ -369,6 +369,11 @@ void sim_step(Simulator *sim)
             set_register(sim, reg, get_register(sim, reg) - 1);
             break;
 
+        case OP_PUTC:
+            reg = sim->memory[sim->pc++];
+            fputc(get_register(sim, reg), stdout);
+            break;
+
         default:
             printf("Illegal opcode 0x%02X at 0x%04X (code 0x%02X, mode 0x%02X)\n", opcode, loc, code, mode);
             sim->halted = TRUE;
@@ -532,6 +537,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_RPOP:
         case OP_INC:
         case OP_DEC:
+        case OP_PUTC:
             strcat(buf, " ");
             disassemble_register(sim, buf, addr);
             break;

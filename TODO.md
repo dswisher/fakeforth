@@ -1,7 +1,6 @@
 ## TODO ##
 
 * Forth
-  * Implement `EMIT`, which requires new PUTC opcode
   * Implement `KEY`, which requires a bunch of new opcodes
   * Implement `INTERPRET`
 * Debugger:
@@ -26,6 +25,7 @@
 * ~~Get rid of GO and replace with JMP with proper address modes~~
 * ~~Change sample to do 2DUP, which calls DUP, to see if nesting works~~
 * ~~Forth~~
+  * ~~Implement `EMIT`, which requires new PUTC opcode~~
   * ~~Implement `LIT`, `!` and `@`~~
 * Debugger:
   * ~~Implement word to find a dictionary entry given a string on the stack~~

@@ -29,7 +29,8 @@ ArgCount arg_counts[] =
     { OP_DPOP, 1 },
     { OP_RPOP, 1 },
     { OP_INC, 1 },
-    { OP_DEC, 1 }
+    { OP_DEC, 1 },
+    { OP_PUTC, 1 }
 };
 
 int num_arg_counts = sizeof(arg_counts) / sizeof(arg_counts[0]);
@@ -559,6 +560,7 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_RPOP:
         case OP_INC:
         case OP_DEC:
+        case OP_PUTC:
             if (!add_register(context, argv[1]))
             {
                 return FALSE;

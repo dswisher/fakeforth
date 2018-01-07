@@ -12,7 +12,8 @@
 #define OP_INC      0x1C
 #define OP_DEC      0x20
 #define OP_LOAD     0x24
-#define OP_STORE    0x28    // TODO - new - implement this!
+#define OP_STORE    0x28
+#define OP_PUTC     0x2C
 
 #define OP_HLT      0xFC
 
