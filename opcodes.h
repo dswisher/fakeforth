@@ -1,23 +1,27 @@
 #ifndef OPCODES_H
 #define OPCODES_H
 
+#define OPCODE(x)   (x << 2)
+
 // Opcodes - most-significant 6 bits
 // NOTE: 00 is reserved for return status
-#define OP_NOP      0x04
-#define OP_JMP      0x08
-#define OP_DPUSH    0x0C
-#define OP_RPUSH    0x10
-#define OP_DPOP     0x14
-#define OP_RPOP     0x18
-#define OP_INC      0x1C
-#define OP_DEC      0x20
-#define OP_LOAD     0x24
-#define OP_STORE    0x28
-#define OP_GETC     0x2C
-#define OP_PUTC     0x30
-#define OP_ADD      0x34
+#define OP_NOP      OPCODE(1)
+#define OP_JMP      OPCODE(2)
+#define OP_DPUSH    OPCODE(3)
+#define OP_RPUSH    OPCODE(4)
+#define OP_DPOP     OPCODE(5)
+#define OP_RPOP     OPCODE(6)
+#define OP_INC      OPCODE(7)
+#define OP_DEC      OPCODE(8)
+#define OP_LOAD     OPCODE(9)
+#define OP_STORE    OPCODE(10)
+#define OP_GETC     OPCODE(11)
+#define OP_PUTC     OPCODE(12)
+#define OP_ADD      OPCODE(13)
+#define OP_CALL     OPCODE(14)
+#define OP_RET      OPCODE(15)
 
-#define OP_HLT      0xFC
+#define OP_HLT      OPCODE(63)
 
 // Address modes - least-significant two bits
 #define ADDR_MODE0  0x00

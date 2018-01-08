@@ -6,7 +6,7 @@ A toy implementation of Forth, using a homebrew simulated machine.
 * Goal? [Forth Standard](https://forth-standard.org/)
 
 
-### Assembly Language Notes ###
+### Simulated Assembly Language Notes ###
 
 * Labels - should start with a letter, contain letters, digits, underscore, hyphen; not match a register
 * LOAD addressing modes, using two bits for mode. Given registers a and b:
@@ -27,4 +27,12 @@ A toy implementation of Forth, using a homebrew simulated machine.
   * `JMP $N` - mode 1 - jump to address N
   * `JMP (a)` - mode 2 - jump to the address contained in the memory word pointed to by a
   * `JUMP ($N)` - mode 3 - jump to the address contained in the memory pointed to by N
+* CALL - push address of next opcode on call stack, jump to specified address
+* RET - pop address off call stack
+
+
+## Possibly Useful Links
+
+* Assembly language: [x86](https://en.wikibooks.org/wiki/X86_Assembly/Control_Flow)
+* Writing an assembler: [Webster](http://plantation-productions.com/Webster/RollYourOwn/index.html)
 

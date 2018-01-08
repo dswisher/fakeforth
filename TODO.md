@@ -1,6 +1,9 @@
 ## TODO ##
 
 * Forth
+  * Implement CMP opcode - define status flags (carry, zero, sign, etc)
+  * Implement conditional jump opcodes: JEQ, JNE, etc.
+  * Implement `WORD` - needs compare and conditional jump opcodes
   * Implement `INTERPRET`
 * Debugger:
   * Implement breakpoints and a restart command
@@ -13,13 +16,14 @@
   * Make aliases into aliases ("p" for "print") rather than defining the word multiple times
 * Assembler:
   * Add psuedo ops to move between data and code areas
-  * Write map (human readable assembled output) to a file
+  * Write map (human readable assembled output) to a file - switch to two-pass?
   * If a label is duplicated, issue an error
   * Implement multi-line comments
 
 
 ## DONE ##
 
+* ~~Implement CALL and RET opcodes - use separate return stack~~
 * ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~
 * ~~Get rid of GO and replace with JMP with proper address modes~~
 * ~~Change sample to do 2DUP, which calls DUP, to see if nesting works~~

@@ -41,6 +41,7 @@ cold_start:                     ; colon-word w/o a header or codeword
         .dict "QUIT"
 QUIT:   .word DOCOL             ; codeword - the interpreter
         ; TODO - clear the return stack
+        ; TODO - clear the data stack?
         .word INTERPRET
         .word BRANCH
         .word $-4

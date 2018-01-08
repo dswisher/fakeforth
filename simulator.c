@@ -29,6 +29,7 @@ Simulator *sim_init(char *objfile)
     sim->symbols = NULL;
     sim->data_stack = NULL;
     sim->return_stack = NULL;
+    sim->call_stack = NULL;
 
     unsigned short len;
     fread(&len, sizeof(len), 1, file);
@@ -173,13 +174,36 @@ unsigned short pop_return(Simulator *sim)
 }
 
 
-StackNode *push_register(Simulator *sim, unsigned char reg, StackNode *next)
+unsigned short pop_call(Simulator *sim)
+{
+    if (sim->call_stack == NULL)
+    {
+        printf("Call stack underflow.\n");
+        sim->halted = TRUE;
+        return 0;
+    }
+
+    StackNode *node = sim->call_stack;
+    sim->call_stack = node->next;
+    unsigned short value = node->value;
+    free(node);
+    return value;
+}
+
+
+StackNode *push_value(Simulator *sim, unsigned short value, StackNode *next)
 {
     StackNode *node = malloc(sizeof(StackNode));
-    node->value = get_register(sim, reg);
+    node->value = value;
     node->next = next;
 
     return node;
+}
+
+
+StackNode *push_register(Simulator *sim, unsigned char reg, StackNode *next)
+{
+    return push_value(sim, get_register(sim, reg), next);
 }
 
 
@@ -344,6 +368,7 @@ void sim_step(Simulator *sim)
     unsigned short loc = sim->pc;
     unsigned char opcode = sim->memory[sim->pc++];
     unsigned char reg;
+    unsigned short addr;
 
     unsigned char code = opcode & ~0x03;
     unsigned char mode = opcode & 0x03;
@@ -413,6 +438,16 @@ void sim_step(Simulator *sim)
         case OP_PUTC:
             reg = sim->memory[sim->pc++];
             fputc(get_register(sim, reg), stdout);
+            break;
+
+        case OP_CALL:
+            addr = consume_word(sim);
+            sim->call_stack = push_value(sim, sim->pc, sim->call_stack);
+            sim->pc = addr;
+            break;
+
+        case OP_RET:
+            sim->pc = pop_call(sim);
             break;
 
         default:
@@ -582,6 +617,11 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_ADD:
             strcat(buf, " ");
             disassemble_register(sim, buf, addr);
+            break;
+
+        case OP_CALL:
+            strcat(buf, " ");
+            disassemble_address(sim, buf, addr);
             break;
     }
 

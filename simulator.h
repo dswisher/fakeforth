@@ -33,6 +33,7 @@ typedef struct Simulator
     // Stacks
     StackNode *data_stack;
     StackNode *return_stack;
+    StackNode *call_stack;
 
     // Simulation state
     bool halted;

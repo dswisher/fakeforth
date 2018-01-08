@@ -32,7 +32,9 @@ ArgCount arg_counts[] =
     { OP_DEC, 1 },
     { OP_GETC, 1 },
     { OP_PUTC, 1 },
-    { OP_ADD, 2 }
+    { OP_ADD, 2 },
+    { OP_CALL, 1 },
+    { OP_RET, 0 }
 };
 
 int num_arg_counts = sizeof(arg_counts) / sizeof(arg_counts[0]);
@@ -553,6 +555,11 @@ bool parse_opcode(Context *context, char *opcode)
             {
                 return FALSE;
             }
+            break;
+
+        case OP_CALL:
+            // TODO - should we allow other modes?
+            add_label_ref(context, argv[1]);
             break;
 
         case OP_LOAD:

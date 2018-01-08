@@ -395,6 +395,7 @@ void dc_print(Context *context)
     Simulator *sim = context->sim;
     char ds[MAXCHAR];
     char rs[MAXCHAR];
+    char cs[MAXCHAR];
 
     puts("");
     if (sim->halted)
@@ -404,10 +405,11 @@ void dc_print(Context *context)
 
     format_stack(ds, sim->data_stack);
     format_stack(rs, sim->return_stack);
+    format_stack(cs, sim->call_stack);
 
     printf("    PC: 0x%04X        Data: %s\n", sim->pc, ds);
     printf("    IP: 0x%04X      Return: %s\n", sim->ip, rs);
-    printf("    CA: 0x%04X\n", sim->ca);
+    printf("    CA: 0x%04X        Call: %s\n", sim->ca, cs);
     printf("     X: 0x%04X\n", sim->x);
     printf("     Y: 0x%04X\n", sim->y);
 
