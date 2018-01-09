@@ -12,6 +12,7 @@
 
 #include "common.h"
 #include "simulator.h"
+#include "opcodes.h"
 #include "util.h"
 
 #define SEPS " \t\n"
@@ -313,6 +314,12 @@ void dc_push_y(Context *context)
 }
 
 
+void dc_push_z(Context *context)
+{
+    do_push(context, context->sim->z);
+}
+
+
 void dc_dot(Context *context)
 {
     if (context->stack == NULL)
@@ -411,7 +418,11 @@ void dc_print(Context *context)
     printf("    IP: 0x%04X      Return: %s\n", sim->ip, rs);
     printf("    CA: 0x%04X        Call: %s\n", sim->ca, cs);
     printf("     X: 0x%04X\n", sim->x);
-    printf("     Y: 0x%04X\n", sim->y);
+    printf("     Y: 0x%04X        Flags, lt: %d   eq: %d   gt: %d\n", sim->y,
+            (sim->flags & FLAG_LT) == FLAG_LT,
+            (sim->flags & FLAG_EQUAL) == FLAG_EQUAL,
+            (sim->flags & FLAG_GT) == FLAG_GT);
+    printf("     Z: 0x%04X\n", sim->z);
 
     puts("");
 
@@ -588,6 +599,7 @@ Context *create_context(Simulator *sim)
     add_command(context, "ca", dc_push_ca);
     add_command(context, "x", dc_push_x);
     add_command(context, "y", dc_push_y);
+    add_command(context, "z", dc_push_z);
     add_command(context, ".", dc_dot);
     add_command(context, "quit", dc_quit);
     add_command(context, "q", dc_quit);

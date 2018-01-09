@@ -20,6 +20,7 @@
 #define OP_ADD      OPCODE(13)
 #define OP_CALL     OPCODE(14)
 #define OP_RET      OPCODE(15)
+#define OP_CMP      OPCODE(16)
 
 #define OP_HLT      OPCODE(63)
 
@@ -35,6 +36,12 @@
 #define REG_CA      0x03
 #define REG_X       0x10
 #define REG_Y       0x11
+#define REG_Z       0x12
+
+// Bits for the flag register
+#define FLAG_EQUAL  0x01
+#define FLAG_GT     0x02    // greater than
+#define FLAG_LT     0x04    // less than
 
 unsigned char op_name_to_code(char *name);
 char *op_code_to_name(unsigned char code);

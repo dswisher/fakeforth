@@ -127,10 +127,13 @@ FETCH_code:
         .dict "KEY"
 KEY:   .word KEY_code
 KEY_code:
-        GETC X                  ; read character from stdin...
+        CALL _KEY               ; get a character...
         DPUSH X                 ; ...and push it on the stack
         JMP next
 
+_KEY:   GETC X                  ; read character from stdin
+        ; TODO - handle input buffers, etc. Take care to only return a byte!
+        RET
 
 ; --- EMIT
         .dict "EMIT"
@@ -140,6 +143,20 @@ EMIT_code:
         PUTC X                  ; ...and print it.
         JMP next
 
+
+; --- WORD
+        .dict "WORD"
+WORD:   .word WORD_code
+WORD_code:
+        CALL _WORD
+        DPUSH X                 ; push base address
+        DPUSH Y                 ; push length
+        JMP next
+
+_WORD:  CALL _KEY               ; get next key, returned in X
+        CMP X, $'\'             ; is it the start of a comment?
+        ; TODO!
+        RET
 
 ; --- Built-in Variables
 

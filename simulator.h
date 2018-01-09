@@ -29,6 +29,8 @@ typedef struct Simulator
     unsigned short ca;      // code address pointer
     unsigned short x;       // scratch register
     unsigned short y;       // scratch register
+    unsigned short z;       // scratch register
+    unsigned short flags;   // flags register (bits) - uses FLAG_xx macros in opcodes.h
 
     // Stacks
     StackNode *data_stack;

@@ -27,12 +27,17 @@ A toy implementation of Forth, using a homebrew simulated machine.
   * `JMP $N` - mode 1 - jump to address N
   * `JMP (a)` - mode 2 - jump to the address contained in the memory word pointed to by a
   * `JUMP ($N)` - mode 3 - jump to the address contained in the memory pointed to by N
+* CMP addressing modes, using two bits for mode. Given registers a and b:
+  * `CMP a, b` - mode 0 - compare registers a and b
+  * `CMP a, $N` - mode 1 - compare register a to the literal value N
+  * `CMP a, (b)` - mode 2 - compare a to the memory word pointed to by b
+  * `CMP a, ($N)` - mode 3 - compare a to the memory word pointed to by the memory word N
 * CALL - push address of next opcode on call stack, jump to specified address
 * RET - pop address off call stack
 
 
 ## Possibly Useful Links
 
-* Assembly language: [x86](https://en.wikibooks.org/wiki/X86_Assembly/Control_Flow)
+* Assembly language: [x86](https://en.wikibooks.org/wiki/X86_Assembly/Control_Flow) - [ARM](http://www.davespace.co.uk/arm/introduction-to-arm/index.html)
 * Writing an assembler: [Webster](http://plantation-productions.com/Webster/RollYourOwn/index.html)
 

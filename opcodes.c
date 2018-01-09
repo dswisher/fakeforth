@@ -26,6 +26,7 @@ NameMap name_map[] =
     { "ADD", OP_ADD },
     { "CALL", OP_CALL },
     { "RET", OP_RET },
+    { "CMP", OP_CMP },
     { "HLT", OP_HLT }
 };
 

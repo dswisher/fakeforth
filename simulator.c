@@ -24,6 +24,8 @@ Simulator *sim_init(char *objfile)
     sim->ca = 0x0000;
     sim->x = 0x0000;
     sim->y = 0x0000;
+    sim->z = 0x0000;
+    sim->flags = 0x0000;
     sim->halted = FALSE;
     sim->num_symbols = 0;
     sim->symbols = NULL;
@@ -100,6 +102,9 @@ unsigned short get_register(Simulator *sim, unsigned char reg)
         case REG_Y:
             return sim->y;
 
+        case REG_Z:
+            return sim->z;
+
         default:
             printf("Illegal/unhandled register 0x%02X\n", reg);
             sim->halted = TRUE;
@@ -130,6 +135,10 @@ void set_register(Simulator *sim, unsigned char reg, unsigned short value)
 
         case REG_Y:
             sim->y = value;
+            break;
+
+        case REG_Z:
+            sim->z = value;
             break;
 
         default:
@@ -328,6 +337,48 @@ void execute_add(Simulator *sim, unsigned char mode)
 }
 
 
+void do_compare(Simulator *sim, unsigned short val1, unsigned short val2)
+{
+    unsigned char equal = (val1 == val2) ? FLAG_EQUAL : 0;
+    unsigned char gt = (val1 > val2) ? FLAG_GT : 0;
+    unsigned char lt = (val1 < val2) ? FLAG_LT : 0;
+
+    sim->flags = equal | gt | lt;
+}
+
+
+void execute_cmp(Simulator *sim, unsigned char mode)
+{
+    unsigned char reg1;
+    unsigned char reg2;
+
+    switch (mode)
+    {
+        case ADDR_MODE0:    // CMP a, b
+            reg1 = sim->memory[sim->pc++];
+            reg2 = sim->memory[sim->pc++];
+            do_compare(sim, get_register(sim, reg1), get_register(sim, reg2));
+            break;
+
+        case ADDR_MODE1:    // CMP a, val 
+            reg1 = sim->memory[sim->pc++];
+            do_compare(sim, get_register(sim, reg1), consume_word(sim));
+            break;
+
+        case ADDR_MODE2:    // CMP a, (b)
+            reg1 = sim->memory[sim->pc++];
+            reg2 = sim->memory[sim->pc++];
+            do_compare(sim, get_register(sim, reg1), sim_read_word(sim, get_register(sim, reg2)));
+            break;
+
+        case ADDR_MODE3:    // CMP a, (addr)
+            reg1 = sim->memory[sim->pc++];
+            do_compare(sim, get_register(sim, reg1), sim_read_word(sim, consume_word(sim)));
+            break;
+    }
+}
+
+
 void execute_jump(Simulator *sim, unsigned char mode)
 {
     unsigned char reg;
@@ -394,6 +445,10 @@ void sim_step(Simulator *sim)
 
         case OP_ADD:
             execute_add(sim, mode);
+            break;
+
+        case OP_CMP:
+            execute_cmp(sim, mode);
             break;
 
         case OP_STORE:
@@ -509,6 +564,10 @@ void disassemble_register(Simulator *sim, char *buf, unsigned short *addr)
             strcat(buf, "Y");
             break;
 
+        case REG_Z:
+            strcat(buf, "Z");
+            break;
+
         default:
             strcat(buf, "??");
             break;
@@ -615,6 +674,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_DEC:
         case OP_PUTC:
         case OP_ADD:
+        case OP_CMP:
             strcat(buf, " ");
             disassemble_register(sim, buf, addr);
             break;
@@ -631,6 +691,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_LOAD:
         case OP_STORE:
         case OP_ADD:
+        case OP_CMP:
             switch (mode)
             {
                 case ADDR_MODE0:

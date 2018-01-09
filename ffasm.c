@@ -34,6 +34,7 @@ ArgCount arg_counts[] =
     { OP_PUTC, 1 },
     { OP_ADD, 2 },
     { OP_CALL, 1 },
+    { OP_CMP, 2 },
     { OP_RET, 0 }
 };
 
@@ -194,8 +195,17 @@ void add_word(Context *context, unsigned short val)
 void add_literal(Context *context, char *literal)
 {
     literal++;      // skip $
-    unsigned short word = strtol(literal, NULL, 16);
-    add_word(context, word);
+    if (*literal == '\'')
+    {
+        // TODO - handle escape sequences (like "\n")
+        literal++;
+        add_word(context, *literal);
+    }
+    else
+    {
+        unsigned short word = strtol(literal, NULL, 16);
+        add_word(context, word);
+    }
 }
 
 
@@ -374,6 +384,12 @@ bool add_register(Context *context, char *name)
         return TRUE;
     }
 
+    if (!strcmp(name, "Z"))
+    {
+        add_byte(context, REG_Z);
+        return TRUE;
+    }
+
     print_error(context, "Unknown register: |%s|\n", name);
     return FALSE;
 }
@@ -526,6 +542,7 @@ bool parse_opcode(Context *context, char *opcode)
 
         case OP_LOAD:
         case OP_ADD:
+        case OP_CMP:
             mode = parse_address_mode(context, argv[2]);
             break;
 
@@ -573,6 +590,7 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_GETC:
         case OP_PUTC:
         case OP_ADD:
+        case OP_CMP:
             if (!add_register(context, argv[1]))
             {
                 return FALSE;
@@ -586,6 +604,7 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_LOAD:
         case OP_STORE:
         case OP_ADD:
+        case OP_CMP:
             if (!add_by_mode(context, mode, argv[2]))
             {
                 return FALSE;

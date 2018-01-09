@@ -1,11 +1,13 @@
 ## TODO ##
 
-* Forth
-  * Implement CMP opcode - define status flags (carry, zero, sign, etc)
+* Virtual Machine
   * Implement conditional jump opcodes: JEQ, JNE, etc.
+  * Implement local labels (`1:`, then `1f` and/or `1b`)
+* Forth
   * Implement `WORD` - needs compare and conditional jump opcodes
   * Implement `INTERPRET`
 * Debugger:
+  * Change `pc` and similar commands to just push an "address" on the stack, then implement `@` and `!` so we can update registers
   * Implement breakpoints and a restart command
   * Keep track of the last PC and show that one bit of history when disassembling
   * In `print`, show symbols that match register values
@@ -23,11 +25,13 @@
 
 ## DONE ##
 
-* ~~Implement CALL and RET opcodes - use separate return stack~~
-* ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~
-* ~~Get rid of GO and replace with JMP with proper address modes~~
-* ~~Change sample to do 2DUP, which calls DUP, to see if nesting works~~
-* ~~Forth~~
+* Virtual Machine
+  * ~~Implement CMP opcode - define status flags (carry, zero, sign, etc)~~
+  * ~~Implement CALL and RET opcodes - use separate return stack~~
+  * ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~
+  * ~~Get rid of GO and replace with JMP with proper address modes~~
+* Forth
+  * ~~Change sample to do 2DUP, which calls DUP, to see if nesting works~~
   * ~~Implement `KEY`, which requires new GETC opcode~~
   * ~~Implement `EMIT`, which requires new PUTC opcode~~
   * ~~Implement `LIT`, `!` and `@`~~
