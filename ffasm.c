@@ -40,6 +40,7 @@ ArgCount arg_counts[] =
     { OP_GETC, 1 },
     { OP_PUTC, 1 },
     { OP_ADD, 2 },
+    { OP_SUB, 2 },
     { OP_CALL, 1 },
     { OP_CMP, 2 },
     { OP_RET, 0 }
@@ -569,6 +570,7 @@ bool parse_opcode(Context *context, char *opcode)
 
         case OP_LOAD:
         case OP_ADD:
+        case OP_SUB:
         case OP_CMP:
             mode = parse_address_mode(context, argv[2]);
             break;
@@ -624,6 +626,7 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_GETC:
         case OP_PUTC:
         case OP_ADD:
+        case OP_SUB:
         case OP_CMP:
             if (!add_register(context, argv[1]))
             {
@@ -638,6 +641,7 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_LOAD:
         case OP_STORE:
         case OP_ADD:
+        case OP_SUB:
         case OP_CMP:
             if (!add_by_mode(context, mode, argv[2]))
             {

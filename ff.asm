@@ -50,11 +50,14 @@ QUIT:   .word DOCOL             ; codeword - the interpreter
 ; --- INTERPRET
 
 INTERPRET:
-        .word DOCOL
-        ; TODO - need real definition of INTERPRET
-        .word KEY
-        .word EMIT
-        .word EXIT
+        .word INTERPRET_code
+INTERPRET_code:
+        CALL _WORD              ; returns X=addr, Y=len
+
+        ; Is it in the dictionary?
+        ; TODO
+
+        JMP next
 
 
 ; --- BRANCH
@@ -155,6 +158,7 @@ WORD_code:
 
 _WORD:  
         ; Search for first non-blank character, skipping \ comments
+        ; Returns length in Y and address in X
 _WORD_1:
         CALL _KEY               ; get next key, returned in X
         CMP X, $'\'             ; is it the start of a comment?
@@ -170,7 +174,9 @@ _WORD_2:
         JGT _WORD_2             ; nope, keep going
 
         ; Return the word (pointer to buffer) and length
-        ; TODO!
+        LOAD Y, Z
+        SUB Y, word_buffer
+        LOAD X, word_buffer
         RET
 
 _WORD_3:        ; skip \ comments to end of current line

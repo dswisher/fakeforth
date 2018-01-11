@@ -28,6 +28,7 @@
 #define OP_JGE      OPCODE(21)
 #define OP_JLE      OPCODE(22)
 #define OP_STOS     OPCODE(23)
+#define OP_SUB      OPCODE(24)
 
 #define OP_HLT      OPCODE(63)
 

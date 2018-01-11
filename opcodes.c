@@ -31,6 +31,7 @@ NameMap name_map[] =
     { "GETC", OP_GETC },
     { "PUTC", OP_PUTC },
     { "ADD", OP_ADD },
+    { "SUB", OP_SUB },
     { "CALL", OP_CALL },
     { "RET", OP_RET },
     { "CMP", OP_CMP },

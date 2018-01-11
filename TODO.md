@@ -1,15 +1,17 @@
 ## TODO ##
 
 * Virtual Machine
+  * Remove STOS hack and redo load and store opcodes to have both a word flavor and a byte flavor
+  * Implement bitwise opcodes: AND, OR, XOR, NOT
 * Forth
-  * Implement `WORD`
   * Implement `INTERPRET`
 * Debugger:
+  * Implement breakpoints and a restart command
+  * Implement tracepoints (print summary state when line is hit)
   * For readline history, don't add to history if its the same as the last entry (no dups)
   * Show ascii character(s) next to registers, perhaps disassembly (CMP X, 0x005C  .\)
   * Do not show symbols for mode 1 addressing
   * Change `pc` and similar commands to just push an "address" on the stack, then implement `@` and `!` so we can update registers
-  * Implement breakpoints and a restart command
   * Keep track of the last PC and show that one bit of history when disassembling
   * In `print`, show symbols that match register values
   * Implement reverse symbol lookup word (find symbol given address)
@@ -31,6 +33,7 @@
 ## DONE ##
 
 * Virtual Machine
+  * ~~Implement SUB opcode~~
   * ~~Need ability to store a word or just a byte (WORD is not working, as high byte overwrites prev char); perhaps store string opcode? STOS?~~
   * ~~Implement conditional jump opcodes: JEQ, JNE, etc.~~
   * ~~Implement CMP opcode - define status flags (carry, zero, sign, etc)~~
@@ -38,6 +41,7 @@
   * ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~
   * ~~Get rid of GO and replace with JMP with proper address modes~~
 * Forth
+  * ~~Implement `WORD`~~
   * ~~Change sample to do 2DUP, which calls DUP, to see if nesting works~~
   * ~~Implement `KEY`, which requires new GETC opcode~~
   * ~~Implement `EMIT`, which requires new PUTC opcode~~

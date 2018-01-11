@@ -321,35 +321,51 @@ void execute_store(Simulator *sim, unsigned char mode)
 }
 
 
-void execute_add(Simulator *sim, unsigned char mode)
+unsigned short add_operation(unsigned short a, unsigned short b)
+{
+    return a + b;
+}
+
+
+unsigned short sub_operation(unsigned short a, unsigned short b)
+{
+    return a - b;
+}
+
+
+void execute_arithmetic(Simulator *sim, unsigned char mode, unsigned short (*operation)(unsigned short a, unsigned short b))
 {
     unsigned char reg1;
     unsigned char reg2;
+    unsigned short result;
 
     switch (mode)
     {
         case ADDR_MODE0:    // ADD a, b
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
-            set_register(sim, reg1, get_register(sim, reg1) + get_register(sim, reg2));
+            result = operation(get_register(sim, reg1), get_register(sim, reg2));
             break;
 
         case ADDR_MODE1:    // ADD a, val 
             reg1 = sim->memory[sim->pc++];
-            set_register(sim, reg1, get_register(sim, reg1) + consume_word(sim));
+            result = operation(get_register(sim, reg1), consume_word(sim));
             break;
 
         case ADDR_MODE2:    // ADD a, (b)
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
             set_register(sim, reg1, get_register(sim, reg1) + sim_read_word(sim, get_register(sim, reg2)));
+            result = operation(get_register(sim, reg1), sim_read_word(sim, get_register(sim, reg2)));
             break;
 
         case ADDR_MODE3:    // ADD a, (addr)
             reg1 = sim->memory[sim->pc++];
-            set_register(sim, reg1, get_register(sim, reg1) + sim_read_word(sim, consume_word(sim)));
+            result = operation(get_register(sim, reg1), sim_read_word(sim, consume_word(sim)));
             break;
     }
+
+    set_register(sim, reg1, result);
 }
 
 
@@ -534,7 +550,11 @@ void sim_step(Simulator *sim)
             break;
 
         case OP_ADD:
-            execute_add(sim, mode);
+            execute_arithmetic(sim, mode, add_operation);
+            break;
+
+        case OP_SUB:
+            execute_arithmetic(sim, mode, sub_operation);
             break;
 
         case OP_CMP:
@@ -773,6 +793,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_DEC:
         case OP_PUTC:
         case OP_ADD:
+        case OP_SUB:
         case OP_CMP:
             strcat(buf, " ");
             disassemble_register(sim, buf, addr);
@@ -795,6 +816,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_LOAD:
         case OP_STORE:
         case OP_ADD:
+        case OP_SUB:
         case OP_CMP:
             switch (mode)
             {
