@@ -21,6 +21,13 @@
 #define OP_CALL     OPCODE(14)
 #define OP_RET      OPCODE(15)
 #define OP_CMP      OPCODE(16)
+#define OP_JEQ      OPCODE(17)
+#define OP_JNE      OPCODE(18)
+#define OP_JGT      OPCODE(19)
+#define OP_JLT      OPCODE(20)
+#define OP_JGE      OPCODE(21)
+#define OP_JLE      OPCODE(22)
+#define OP_STOS     OPCODE(23)
 
 #define OP_HLT      OPCODE(63)
 

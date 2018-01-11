@@ -1,12 +1,13 @@
 ## TODO ##
 
 * Virtual Machine
-  * Implement conditional jump opcodes: JEQ, JNE, etc.
-  * Implement local labels (`1:`, then `1f` and/or `1b`)
 * Forth
-  * Implement `WORD` - needs compare and conditional jump opcodes
+  * Implement `WORD`
   * Implement `INTERPRET`
 * Debugger:
+  * For readline history, don't add to history if its the same as the last entry (no dups)
+  * Show ascii character(s) next to registers, perhaps disassembly (CMP X, 0x005C  .\)
+  * Do not show symbols for mode 1 addressing
   * Change `pc` and similar commands to just push an "address" on the stack, then implement `@` and `!` so we can update registers
   * Implement breakpoints and a restart command
   * Keep track of the last PC and show that one bit of history when disassembling
@@ -17,6 +18,10 @@
   * Tie source code (via map file?) into debugger and show via `list`
   * Make aliases into aliases ("p" for "print") rather than defining the word multiple times
 * Assembler:
+  * BUG: handle CMP X, $' '     (thinks the space is between args)
+  * Handle CMP X, $'\n'         (backslash escaping)
+  * Improve literal handling: "$20" is hex 0x20, "20" is decimal
+  * Implement local labels (`1:`, then `1f` and/or `1b`)
   * Add psuedo ops to move between data and code areas
   * Write map (human readable assembled output) to a file - switch to two-pass?
   * If a label is duplicated, issue an error
@@ -26,6 +31,8 @@
 ## DONE ##
 
 * Virtual Machine
+  * ~~Need ability to store a word or just a byte (WORD is not working, as high byte overwrites prev char); perhaps store string opcode? STOS?~~
+  * ~~Implement conditional jump opcodes: JEQ, JNE, etc.~~
   * ~~Implement CMP opcode - define status flags (carry, zero, sign, etc)~~
   * ~~Implement CALL and RET opcodes - use separate return stack~~
   * ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~

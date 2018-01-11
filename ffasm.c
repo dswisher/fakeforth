@@ -22,8 +22,15 @@ typedef struct ArgCount
 ArgCount arg_counts[] =
 {
     { OP_JMP, 1 },
+    { OP_JEQ, 1 },
+    { OP_JNE, 1 },
+    { OP_JGT, 1 },
+    { OP_JLT, 1 },
+    { OP_JGE, 1 },
+    { OP_JLE, 1 },
     { OP_LOAD, 2 },
     { OP_STORE, 2 },
+    { OP_STOS, 2 },
     { OP_DPUSH, 1 },
     { OP_RPUSH, 1 },
     { OP_DPOP, 1 },
@@ -185,6 +192,12 @@ void add_byte(Context *context, unsigned char val)
 }
 
 
+void add_space(Context *context, unsigned short num)
+{
+    context->origin += num;
+}
+
+
 void add_word(Context *context, unsigned short val)
 {
     add_byte(context, val >> 8);
@@ -295,13 +308,21 @@ bool parse_pseudo(Context *context, int argc, char *argv[])
 
     if (!strcmp(argv[0], ".byte"))
     {
-        add_byte(context, atoi(&(argv[1][1])));
+        unsigned char val = strtol(&(argv[1][1]), NULL, 16);
+        add_byte(context, val);
         return TRUE;
     }
 
     if (!strcmp(argv[0], ".ascii"))
     {
         add_string(context, strip_quotes(argv[1]));
+        return TRUE;
+    }
+
+    if (!strcmp(argv[0], ".space"))
+    {
+        unsigned short num = strtol(&(argv[1][1]), NULL, 16);
+        add_space(context, num);
         return TRUE;
     }
 
@@ -397,7 +418,7 @@ bool add_register(Context *context, char *name)
 
 bool is_register(char *str)
 {
-    if (!strcmp(str, "IP") || !strcmp(str, "CA") || !strcmp(str, "X") || !strcmp(str, "Y"))
+    if (!strcmp(str, "IP") || !strcmp(str, "CA") || !strcmp(str, "X") || !strcmp(str, "Y") || !strcmp(str, "Z"))
     {
         return TRUE;
     }
@@ -537,6 +558,12 @@ bool parse_opcode(Context *context, char *opcode)
     switch (code)
     {
         case OP_JMP:
+        case OP_JEQ:
+        case OP_JNE:
+        case OP_JGT:
+        case OP_JLT:
+        case OP_JGE:
+        case OP_JLE:
             mode = parse_address_mode(context, argv[1]);
             break;
 
@@ -568,6 +595,12 @@ bool parse_opcode(Context *context, char *opcode)
     switch (code)
     {
         case OP_JMP:
+        case OP_JEQ:
+        case OP_JNE:
+        case OP_JGT:
+        case OP_JLT:
+        case OP_JGE:
+        case OP_JLE:
             if (!add_by_mode(context, mode, argv[1]))
             {
                 return FALSE;
@@ -581,6 +614,7 @@ bool parse_opcode(Context *context, char *opcode)
 
         case OP_LOAD:
         case OP_STORE:
+        case OP_STOS:
         case OP_DPUSH:
         case OP_RPUSH:
         case OP_DPOP:
@@ -606,6 +640,13 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_ADD:
         case OP_CMP:
             if (!add_by_mode(context, mode, argv[2]))
+            {
+                return FALSE;
+            }
+            break;
+
+        case OP_STOS:
+            if (!add_register(context, argv[2]))
             {
                 return FALSE;
             }

@@ -273,6 +273,22 @@ void execute_load(Simulator *sim, unsigned char mode)
 }
 
 
+void execute_stos(Simulator *sim)
+{
+    unsigned char reg1 = sim->memory[sim->pc++];
+    unsigned char reg2 = sim->memory[sim->pc++];
+
+    // Save the character
+    unsigned char value = get_register(sim, reg1);
+    unsigned short addr = get_register(sim, reg2);
+
+    sim->memory[addr] = value;
+
+    // Increment the pointer
+    set_register(sim, reg2, addr + 1);
+}
+
+
 void execute_store(Simulator *sim, unsigned char mode)
 {
     unsigned char reg1;
@@ -379,31 +395,81 @@ void execute_cmp(Simulator *sim, unsigned char mode)
 }
 
 
-void execute_jump(Simulator *sim, unsigned char mode)
+bool condition_always(Simulator *sim)
+{
+    return TRUE;
+}
+
+
+bool condition_equal(Simulator *sim)
+{
+    return (sim->flags & FLAG_EQUAL) == FLAG_EQUAL;
+}
+
+
+bool condition_not_equal(Simulator *sim)
+{
+    return (sim->flags & FLAG_EQUAL) == 0;
+}
+
+
+bool condition_gt(Simulator *sim)
+{
+    return (sim->flags & FLAG_GT) == FLAG_GT;
+}
+
+
+bool condition_lt(Simulator *sim)
+{
+    return (sim->flags & FLAG_LT) == FLAG_LT;
+}
+
+
+bool condition_ge(Simulator *sim)
+{
+    return ((sim->flags & FLAG_GT) == FLAG_GT) || ((sim->flags & FLAG_EQUAL) == FLAG_EQUAL);
+}
+
+
+bool condition_le(Simulator *sim)
+{
+    return ((sim->flags & FLAG_LT) == FLAG_LT) || ((sim->flags & FLAG_EQUAL) == FLAG_EQUAL);
+}
+
+
+void execute_jump(Simulator *sim, unsigned char mode, bool (*condition)(Simulator *sim))
 {
     unsigned char reg;
     unsigned short addr;
+    unsigned short newpc;
 
     switch (mode)
     {
         case ADDR_MODE0:    // JMP a
             reg = sim->memory[sim->pc++];
-            sim->pc = get_register(sim, reg);
+            newpc = get_register(sim, reg);
             break;
 
         case ADDR_MODE1:    // JMP addr
-            sim->pc = consume_word(sim);
+            newpc = consume_word(sim);
             break;
 
         case ADDR_MODE2:    // JMP (a)
             reg = sim->memory[sim->pc++];
-            sim->pc = sim_read_word(sim, get_register(sim, reg));
+            newpc = sim_read_word(sim, get_register(sim, reg));
             break;
 
         case ADDR_MODE3:    // JMP (addr)
             addr = consume_word(sim);
-            sim->pc = sim_read_word(sim, addr);
+            newpc = sim_read_word(sim, addr);
             break;
+    }
+
+    // Only jump if the condition has been met; can't do this up top, need to
+    // update the PC by parsing the modes if we don't jump
+    if (condition(sim))
+    {
+        sim->pc = newpc;
     }
 }
 
@@ -436,7 +502,31 @@ void sim_step(Simulator *sim)
             break;
 
         case OP_JMP:
-            execute_jump(sim, mode);
+            execute_jump(sim, mode, condition_always);
+            break;
+
+        case OP_JEQ:
+            execute_jump(sim, mode, condition_equal);
+            break;
+
+        case OP_JNE:
+            execute_jump(sim, mode, condition_not_equal);
+            break;
+
+        case OP_JGT:
+            execute_jump(sim, mode, condition_gt);
+            break;
+
+        case OP_JLT:
+            execute_jump(sim, mode, condition_lt);
+            break;
+
+        case OP_JGE:
+            execute_jump(sim, mode, condition_ge);
+            break;
+
+        case OP_JLE:
+            execute_jump(sim, mode, condition_le);
             break;
 
         case OP_LOAD:
@@ -453,6 +543,10 @@ void sim_step(Simulator *sim)
 
         case OP_STORE:
             execute_store(sim, mode);
+            break;
+
+        case OP_STOS:
+            execute_stos(sim);
             break;
 
         case OP_DPUSH:
@@ -638,6 +732,10 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
     switch (code)
     {
         case OP_JMP:
+        case OP_JEQ:
+        case OP_JNE:
+        case OP_JGT:
+        case OP_JLT:
             switch (mode)
             {
                 case ADDR_MODE0:
@@ -666,6 +764,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
 
         case OP_LOAD:
         case OP_STORE:
+        case OP_STOS:
         case OP_DPUSH:
         case OP_RPUSH:
         case OP_DPOP:
@@ -688,6 +787,11 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
     // Handle the second argument
     switch (code)
     {
+        case OP_STOS:
+            strcat(buf, ", ");
+            disassemble_register(sim, buf, addr);
+            break;
+
         case OP_LOAD:
         case OP_STORE:
         case OP_ADD:

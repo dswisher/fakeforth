@@ -355,14 +355,16 @@ void dc_run(Context *context)
 
 void dc_list(Context *context)
 {
-    unsigned short addr = context->sim->pc;
-    if (context->stack != NULL)
+    if ((context->stack == NULL) || (context->stack->next == NULL))
     {
-        addr = do_pop(context);
+        printf("usage: (addr n --)\n");
+        return;
     }
 
-    // TODO - add variable to keep track of how many instructions to disassemble
-    sim_disassemble(context->sim, addr, 3);
+    unsigned short num = do_pop(context);
+    unsigned short addr = do_pop(context);
+
+    sim_disassemble(context->sim, addr, num);
 }
 
 

@@ -153,10 +153,36 @@ WORD_code:
         DPUSH Y                 ; push length
         JMP next
 
-_WORD:  CALL _KEY               ; get next key, returned in X
+_WORD:  
+        ; Search for first non-blank character, skipping \ comments
+_WORD_1:
+        CALL _KEY               ; get next key, returned in X
         CMP X, $'\'             ; is it the start of a comment?
+        JEQ _WORD_3
+        CMP X, $20              ; whitespace?
+        JLE _WORD_1
+
+        LOAD Z, word_buffer
+_WORD_2:
+        STOS X, Z               ; store character in X at Z, inc Z
+        CALL _KEY
+        CMP X, $20              ; space?
+        JGT _WORD_2             ; nope, keep going
+
+        ; Return the word (pointer to buffer) and length
         ; TODO!
         RET
+
+_WORD_3:        ; skip \ comments to end of current line
+        CALL _KEY
+        CMP X, $A               ; end of line?
+        JNE _WORD_3
+        JMP _WORD_1
+
+        ; TODO - .data
+        ; A static buffer to hold value returned by WORD.
+word_buffer:
+        .space $20
 
 ; --- Built-in Variables
 

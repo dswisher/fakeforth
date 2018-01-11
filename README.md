@@ -38,6 +38,7 @@ A toy implementation of Forth, using a homebrew simulated machine.
 
 ## Possibly Useful Links
 
-* Assembly language: [x86](https://en.wikibooks.org/wiki/X86_Assembly/Control_Flow) - [ARM](http://www.davespace.co.uk/arm/introduction-to-arm/index.html)
+* Assembly language: [x86](https://en.wikibooks.org/wiki/X86_Assembly) - [ARM](http://www.davespace.co.uk/arm/introduction-to-arm/index.html)
 * Writing an assembler: [Webster](http://plantation-productions.com/Webster/RollYourOwn/index.html)
+* Emulators: [wikipedia list](https://en.wikipedia.org/wiki/List_of_computer_system_emulators) - [QEMU](https://www.qemu.org/)
 
