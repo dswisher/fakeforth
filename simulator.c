@@ -99,6 +99,18 @@ unsigned short get_register(Simulator *sim, unsigned char reg)
         case REG_CA:
             return sim->ca;
 
+        case REG_I:
+            return sim->i;
+
+        case REG_J:
+            return sim->j;
+
+        case REG_M:
+            return sim->m;
+
+        case REG_N:
+            return sim->n;
+
         case REG_X:
             return sim->x;
 
@@ -130,6 +142,22 @@ void set_register(Simulator *sim, unsigned char reg, unsigned short value)
 
         case REG_CA:
             sim->ca = value;
+            break;
+
+        case REG_I:
+            sim->i = value;
+            break;
+
+        case REG_J:
+            sim->j = value;
+            break;
+
+        case REG_M:
+            sim->m = value;
+            break;
+
+        case REG_N:
+            sim->n = value;
             break;
 
         case REG_X:
@@ -673,6 +701,22 @@ void disassemble_register(Simulator *sim, char *buf, unsigned short *addr)
             strcat(buf, "CA");
             break;
 
+        case REG_I:
+            strcat(buf, "I");
+            break;
+
+        case REG_J:
+            strcat(buf, "J");
+            break;
+
+        case REG_M:
+            strcat(buf, "M");
+            break;
+
+        case REG_N:
+            strcat(buf, "N");
+            break;
+
         case REG_X:
             strcat(buf, "X");
             break;
@@ -924,6 +968,10 @@ void sim_reset(Simulator *sim)
     sim->pc = 0x0000;
     sim->ip = 0x0000;
     sim->ca = 0x0000;
+    sim->i = 0x0000;
+    sim->j = 0x0000;
+    sim->m = 0x0000;
+    sim->n = 0x0000;
     sim->x = 0x0000;
     sim->y = 0x0000;
     sim->z = 0x0000;

@@ -177,11 +177,23 @@ FIND_code:
         JMP next
 
 _FIND:
+        LOAD Z, (var_LATEST)
+_FIND_1:
+        CMP Z, $0               ; is this the null pointer at the end of the linked list?
+        JEQ _FIND_4             ; ...yup...
+
+        ; Compare the lengths
+        ; TODO
+
+
         ; TODO - HACK code - pretend not found
         LOAD X, $0
-        DPUSH X
         RET
 
+        ; Not found
+_FIND_4:
+        LOAD X, $0              ; return zero to indicate not found
+        RET
 
 ; --- WORD
         .dict "WORD"

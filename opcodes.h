@@ -42,6 +42,10 @@
 #define REG_PC      0x01
 #define REG_IP      0x02
 #define REG_CA      0x03
+#define REG_I       0x0C
+#define REG_J       0x0D
+#define REG_M       0x0E
+#define REG_N       0x0F
 #define REG_X       0x10
 #define REG_Y       0x11
 #define REG_Z       0x12

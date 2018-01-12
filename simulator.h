@@ -28,9 +28,13 @@ typedef struct Simulator
     unsigned short pc;      // program counter
     unsigned short ip;      // instruction pointer
     unsigned short ca;      // code address pointer
-    unsigned short x;       // scratch register
-    unsigned short y;       // scratch register
-    unsigned short z;       // scratch register
+    unsigned short i;       // scratch registers
+    unsigned short j;
+    unsigned short m;
+    unsigned short n;
+    unsigned short x;
+    unsigned short y;
+    unsigned short z;
     unsigned short flags;   // flags register (bits) - uses FLAG_xx macros in opcodes.h
 
     // Stacks

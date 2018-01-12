@@ -309,6 +309,30 @@ void dc_push_ca(Context *context)
 }
 
 
+void dc_push_i(Context *context)
+{
+    do_push(context, context->sim->i);
+}
+
+
+void dc_push_j(Context *context)
+{
+    do_push(context, context->sim->j);
+}
+
+
+void dc_push_m(Context *context)
+{
+    do_push(context, context->sim->m);
+}
+
+
+void dc_push_n(Context *context)
+{
+    do_push(context, context->sim->n);
+}
+
+
 void dc_push_x(Context *context)
 {
     do_push(context, context->sim->x);
@@ -423,11 +447,11 @@ void dc_print(Context *context)
     format_stack(rs, sim->return_stack);
     format_stack(cs, sim->call_stack);
 
-    printf("    PC: 0x%04X        Data: %s\n", sim->pc, ds);
-    printf("    IP: 0x%04X      Return: %s\n", sim->ip, rs);
-    printf("    CA: 0x%04X        Call: %s\n", sim->ca, cs);
-    printf("     X: 0x%04X\n", sim->x);
-    printf("     Y: 0x%04X        Flags, lt: %d   eq: %d   gt: %d\n", sim->y,
+    printf("    PC: 0x%04X    I: 0x%04X     Data: %s\n", sim->pc, sim->i, ds);
+    printf("    IP: 0x%04X    J: 0x%04X   Return: %s\n", sim->ip, sim->j, rs);
+    printf("    CA: 0x%04X    M: 0x%04X     Call: %s\n", sim->ca, sim->m, cs);
+    printf("     X: 0x%04X    N: 0x%04X\n", sim->x, sim->n);
+    printf("     Y: 0x%04X    Flags, lt: %d   eq: %d   gt: %d\n", sim->y,
             (sim->flags & FLAG_LT) == FLAG_LT,
             (sim->flags & FLAG_EQUAL) == FLAG_EQUAL,
             (sim->flags & FLAG_GT) == FLAG_GT);
@@ -619,6 +643,10 @@ Context *create_context(Simulator *sim)
     add_command(context, "pc", dc_push_pc);
     add_command(context, "ip", dc_push_ip);
     add_command(context, "ca", dc_push_ca);
+    add_command(context, "i", dc_push_i);
+    add_command(context, "j", dc_push_j);
+    add_command(context, "m", dc_push_m);
+    add_command(context, "n", dc_push_n);
     add_command(context, "x", dc_push_x);
     add_command(context, "y", dc_push_y);
     add_command(context, "z", dc_push_z);

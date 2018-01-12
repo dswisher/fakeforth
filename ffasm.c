@@ -394,6 +394,30 @@ bool add_register(Context *context, char *name)
         return TRUE;
     }
 
+    if (!strcmp(name, "I"))
+    {
+        add_byte(context, REG_I);
+        return TRUE;
+    }
+
+    if (!strcmp(name, "J"))
+    {
+        add_byte(context, REG_J);
+        return TRUE;
+    }
+
+    if (!strcmp(name, "M"))
+    {
+        add_byte(context, REG_M);
+        return TRUE;
+    }
+
+    if (!strcmp(name, "N"))
+    {
+        add_byte(context, REG_N);
+        return TRUE;
+    }
+
     if (!strcmp(name, "X"))
     {
         add_byte(context, REG_X);
@@ -419,7 +443,9 @@ bool add_register(Context *context, char *name)
 
 bool is_register(char *str)
 {
-    if (!strcmp(str, "IP") || !strcmp(str, "CA") || !strcmp(str, "X") || !strcmp(str, "Y") || !strcmp(str, "Z"))
+    if (!strcmp(str, "IP") || !strcmp(str, "CA") || !strcmp(str, "I") || !strcmp(str, "J")
+            || !strcmp(str, "M") || !strcmp(str, "N")
+            || !strcmp(str, "X") || !strcmp(str, "Y") || !strcmp(str, "Z"))
     {
         return TRUE;
     }
