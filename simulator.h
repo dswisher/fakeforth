@@ -4,6 +4,7 @@
 #include "common.h"
 
 #define MEMSIZE 1<<16
+#define MAX_BREAKPOINTS 100
 
 typedef struct SimSymbol
 {
@@ -40,6 +41,10 @@ typedef struct Simulator
     // Simulation state
     bool halted;
 
+    // Set of addresses that have breakpoints set
+    int num_breakpoints;
+    unsigned short *breakpoints;
+
     // Symbols
     int num_symbols;
     SimSymbol **symbols;
@@ -54,6 +59,8 @@ void sim_disassemble(Simulator *sim, unsigned short addr, int num);
 char *sim_reverse_lookup_symbol(Simulator *sim, unsigned short addr);
 bool sim_lookup_symbol(Simulator *sim, char *name, unsigned short *addr);
 unsigned short sim_read_word(Simulator *sim, unsigned short addr);
+void sim_toggle_breakpoint(Simulator *sim, unsigned short addr);
+void sim_reset(Simulator *sim);
 
 char *format_word(unsigned short addr);
 

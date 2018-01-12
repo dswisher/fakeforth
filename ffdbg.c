@@ -216,12 +216,19 @@ bool execute_command(Context *context)
     char *args[MAXARGS];
 
 #ifdef USE_READLINE
+    static char *last_line = NULL;
+
     // TODO - fix possible buffer overflow!
     char *line = readline(buf);
     strcpy(buf, line);
-    if (strlen(buf) > 0 && strcmp(buf, "q"))
+    if (strlen(buf) > 0 && strcmp(buf, "q") && (last_line == NULL || strcmp(last_line, buf)))
     {
         add_history(buf);
+        if (last_line != NULL)
+        {
+            free(last_line);
+        }
+        last_line = strdup(buf);
     }
     free(line);
 #else
@@ -577,6 +584,19 @@ void dc_find(Context *context)
 }
 
 
+void dc_toggle_breakpoint(Context *context)
+{
+    unsigned short addr = do_pop(context);
+    sim_toggle_breakpoint(context->sim, addr);
+}
+
+
+void dc_reset(Context *context)
+{
+    sim_reset(context->sim);
+}
+
+
 void add_command(Context *context, char *name, void (*func)(Context *context))
 {
     DebugCommand *command = malloc(sizeof(DebugCommand));
@@ -619,9 +639,11 @@ Context *create_context(Simulator *sim)
     add_command(context, "emit", dc_emit);
     add_command(context, "lookup", dc_lookup);
     add_command(context, "find", dc_find);
+    add_command(context, "break", dc_toggle_breakpoint);
+    add_command(context, "b", dc_toggle_breakpoint);
+    add_command(context, "reset", dc_reset);
 
     // TODO - help
-    // TODO - set/clear breakpoint
 
     // TODO - make aliases explicitly aliases, rather than defining commands twice
 

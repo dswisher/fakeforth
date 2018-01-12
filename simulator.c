@@ -19,19 +19,15 @@ Simulator *sim_init(char *objfile)
 
     Simulator *sim = malloc(sizeof(Simulator));
     sim->memory = malloc(MEMSIZE);
-    sim->pc = 0x0000;
-    sim->ip = 0x0000;
-    sim->ca = 0x0000;
-    sim->x = 0x0000;
-    sim->y = 0x0000;
-    sim->z = 0x0000;
-    sim->flags = 0x0000;
-    sim->halted = FALSE;
     sim->num_symbols = 0;
     sim->symbols = NULL;
+    sim->num_breakpoints = 0;
+    sim->breakpoints = malloc(sizeof(unsigned short) * MAX_BREAKPOINTS);
     sim->data_stack = NULL;
     sim->return_stack = NULL;
     sim->call_stack = NULL;
+
+    sim_reset(sim);
 
     unsigned short len;
     fread(&len, sizeof(len), 1, file);
@@ -78,7 +74,14 @@ void sim_run(Simulator *sim)
     {
         sim_step(sim);
 
-        // TODO - check to see if we've hit a breakpoint
+        for (int i = 0; i < sim->num_breakpoints; i++)
+        {
+            if (sim->breakpoints[i] == sim->pc)
+            {
+                printf("-> BREAK at 0x%04X.\n", sim->pc);
+                return;
+            }
+        }
     }
 }
 
@@ -705,7 +708,6 @@ char *format_byte(unsigned char b)
 }
 
 
-// In reality, this should be disassemble word, but we assume it's an address to display syms
 void disassemble_address(Simulator *sim, char *buf, unsigned short *addr)
 {
     unsigned char hi_byte = sim->memory[(*addr)++];
@@ -864,7 +866,17 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         indi = "->";
     }
 
-    printf(" %-2s 0x%04X %-12.12s %-8s %s\n", indi, start, buf2, format_bytes(sim, start, end), buf);
+    char *bp = "";
+    for (int i = 0; i < sim->num_breakpoints; i++)
+    {
+        if (start == sim->breakpoints[i])
+        {
+            bp = "*B*";
+            break;
+        }
+    }
+
+    printf(" %-2s %-3s 0x%04X %-12.12s %-8s %s\n", indi, bp, start, buf2, format_bytes(sim, start, end), buf);
 }
 
 
@@ -875,5 +887,64 @@ void sim_disassemble(Simulator *sim, unsigned short addr, int num)
         disassemble_one(sim, &addr);
         --num;
     }
+}
+
+
+void sim_toggle_breakpoint(Simulator *sim, unsigned short addr)
+{
+    // Does it exist already? If so, remove it from the list...
+    for (int i = 0; i < sim->num_breakpoints; i++)
+    {
+        if (sim->breakpoints[i] == addr)
+        {
+            // Found it - remove it
+            for (int j = 0; j < sim->num_breakpoints - 1; j++)
+            {
+                sim->breakpoints[j] = sim->breakpoints[j + 1];
+            }
+            sim->num_breakpoints -= 1;
+            printf("Breakpoint at 0x%04X cleared.\n", addr);
+            return;
+        }
+    }
+
+    if (sim->num_breakpoints == MAX_BREAKPOINTS - 1)
+    {
+        printf("-> too many breakpoints!\n");
+        return;
+    }
+
+    sim->breakpoints[sim->num_breakpoints++] = addr;
+    printf("Breakpoint at 0x%04X set.\n", addr);
+}
+
+
+void sim_reset(Simulator *sim)
+{
+    sim->pc = 0x0000;
+    sim->ip = 0x0000;
+    sim->ca = 0x0000;
+    sim->x = 0x0000;
+    sim->y = 0x0000;
+    sim->z = 0x0000;
+    sim->flags = 0x0000;
+    sim->halted = FALSE;
+
+    while (sim->data_stack != NULL)
+    {
+        pop_data(sim);
+    }
+
+    while (sim->return_stack != NULL)
+    {
+        pop_return(sim);
+    }
+
+    while (sim->call_stack != NULL)
+    {
+        pop_call(sim);
+    }
+
+    // TODO - clear input buffers
 }
 

@@ -55,9 +55,26 @@ INTERPRET_code:
         CALL _WORD              ; returns X=addr, Y=len
 
         ; Is it in the dictionary?
+        LOAD X, $0
+        STORE X, (interpret_is_lit)
+        CALL _FIND
+        CMP X, $0               ; found?
+        JEQ _INTERP_1           ; nope
+
+        ; In the dictionary. Is it an IMMEDIATE codeword?
         ; TODO
 
         JMP next
+
+        ; Not in the dictionary; assume a literal number
+_INTERP_1:
+        LOAD Z, $1
+        STORE Z, (interpret_is_lit)
+        ; TODO
+        HLT
+
+interpret_is_lit:
+        .word $0                ; flag used to record if reading a literal
 
 
 ; --- BRANCH
@@ -138,6 +155,7 @@ _KEY:   GETC X                  ; read character from stdin
         ; TODO - handle input buffers, etc. Take care to only return a byte!
         RET
 
+
 ; --- EMIT
         .dict "EMIT"
 EMIT:   .word EMIT_code
@@ -145,6 +163,24 @@ EMIT_code:
         DPOP X                  ; get character to print...
         PUTC X                  ; ...and print it.
         JMP next
+
+
+; --- FIND
+
+        .dict "FIND"
+FIND:   .word FIND_code
+FIND_code:
+        DPOP Y                   ; length
+        DPOP X                   ; address
+        CALL _FIND
+        DPUSH X
+        JMP next
+
+_FIND:
+        ; TODO - HACK code - pretend not found
+        LOAD X, $0
+        DPUSH X
+        RET
 
 
 ; --- WORD

@@ -3,17 +3,19 @@
 * Virtual Machine
   * Remove STOS hack and redo load and store opcodes to have both a word flavor and a byte flavor
   * Implement bitwise opcodes: AND, OR, XOR, NOT
+  * On reset, clear input buffers
+  * Should arith operators (ADD, SUB, AND, etc) set the zero flag?
 * Forth
+  * Implement `FIND`
+  * Implement `>NUMBER` (`NUMBER` in JonesForth?)
+  * Implement `,` (comma)
   * Implement `INTERPRET`
 * Debugger:
-  * Implement breakpoints and a restart command
   * Implement tracepoints (print summary state when line is hit)
-  * For readline history, don't add to history if its the same as the last entry (no dups)
   * Show ascii character(s) next to registers, perhaps disassembly (CMP X, 0x005C  .\)
-  * Do not show symbols for mode 1 addressing
   * Change `pc` and similar commands to just push an "address" on the stack, then implement `@` and `!` so we can update registers
   * Keep track of the last PC and show that one bit of history when disassembling
-  * In `print`, show symbols that match register values
+  * In `print`, show symbols that match register values?
   * Implement reverse symbol lookup word (find symbol given address)
   * Implement a word to dump a Forth dictionary entry
   * Implement simple arithmetic
@@ -47,6 +49,9 @@
   * ~~Implement `EMIT`, which requires new PUTC opcode~~
   * ~~Implement `LIT`, `!` and `@`~~
 * Debugger:
+  * ~~BAD IDEA: Do not show symbols for mode 1 addressing~~
+  * ~~For readline history, don't add to history if its the same as the last entry (no dups)~~
+  * ~~Implement breakpoints and a restart command~~
   * ~~Implement word to find a dictionary entry given a string on the stack~~
   * ~~Allow labels to be pushed onto the stack; perhaps with a way to quote them (so "next" can be used as a label, too)~~
     * ~~put STRING on stack, then invoke "lookup" word?!~~
