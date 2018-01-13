@@ -19,9 +19,6 @@ NameMap name_map[] =
     { "JLT", OP_JLT },
     { "JGE", OP_JGE },
     { "JLE", OP_JLE },
-    { "LOAD", OP_LOAD },
-    { "STORE", OP_STORE },
-    { "STOS", OP_STOS },
     { "DPUSH", OP_DPUSH },
     { "RPUSH", OP_RPUSH },
     { "DPOP", OP_DPOP },
@@ -35,6 +32,10 @@ NameMap name_map[] =
     { "CALL", OP_CALL },
     { "RET", OP_RET },
     { "CMP", OP_CMP },
+    { "LDW", OP_LDW },
+    { "LDB", OP_LDB },
+    { "STW", OP_STW },
+    { "STB", OP_STB },
     { "HLT", OP_HLT }
 };
 

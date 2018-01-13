@@ -28,9 +28,10 @@ ArgCount arg_counts[] =
     { OP_JLT, 1 },
     { OP_JGE, 1 },
     { OP_JLE, 1 },
-    { OP_LOAD, 2 },
-    { OP_STORE, 2 },
-    { OP_STOS, 2 },
+    { OP_LDW, 2 },
+    { OP_LDB, 2 },
+    { OP_STW, 2 },
+    { OP_STB, 2 },
     { OP_DPUSH, 1 },
     { OP_RPUSH, 1 },
     { OP_DPOP, 1 },
@@ -594,14 +595,16 @@ bool parse_opcode(Context *context, char *opcode)
             mode = parse_address_mode(context, argv[1]);
             break;
 
-        case OP_LOAD:
+        case OP_LDW:
+        case OP_LDB:
         case OP_ADD:
         case OP_SUB:
         case OP_CMP:
             mode = parse_address_mode(context, argv[2]);
             break;
 
-        case OP_STORE:
+        case OP_STW:
+        case OP_STB:
             mode = parse_address_mode(context, argv[2]);
             if (mode == ADDR_MODE1)
             {
@@ -640,9 +643,10 @@ bool parse_opcode(Context *context, char *opcode)
             add_label_ref(context, argv[1]);
             break;
 
-        case OP_LOAD:
-        case OP_STORE:
-        case OP_STOS:
+        case OP_LDW:
+        case OP_LDB:
+        case OP_STW:
+        case OP_STB:
         case OP_DPUSH:
         case OP_RPUSH:
         case OP_DPOP:
@@ -664,19 +668,14 @@ bool parse_opcode(Context *context, char *opcode)
     // Handle the second argument (for codes that have a second argument)
     switch (code)
     {
-        case OP_LOAD:
-        case OP_STORE:
+        case OP_LDW:
+        case OP_LDB:
+        case OP_STW:
+        case OP_STB:
         case OP_ADD:
         case OP_SUB:
         case OP_CMP:
             if (!add_by_mode(context, mode, argv[2]))
-            {
-                return FALSE;
-            }
-            break;
-
-        case OP_STOS:
-            if (!add_register(context, argv[2]))
             {
                 return FALSE;
             }

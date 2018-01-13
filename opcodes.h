@@ -13,8 +13,7 @@
 #define OP_RPOP     OPCODE(6)
 #define OP_INC      OPCODE(7)
 #define OP_DEC      OPCODE(8)
-#define OP_LOAD     OPCODE(9)
-#define OP_STORE    OPCODE(10)
+// TODO - gap
 #define OP_GETC     OPCODE(11)
 #define OP_PUTC     OPCODE(12)
 #define OP_ADD      OPCODE(13)
@@ -27,8 +26,12 @@
 #define OP_JLT      OPCODE(20)
 #define OP_JGE      OPCODE(21)
 #define OP_JLE      OPCODE(22)
-#define OP_STOS     OPCODE(23)
+// TODO - gap
 #define OP_SUB      OPCODE(24)
+#define OP_LDW      OPCODE(25)
+#define OP_LDB      OPCODE(26)
+#define OP_STW      OPCODE(27)
+#define OP_STB      OPCODE(28)
 
 #define OP_HLT      OPCODE(63)
 

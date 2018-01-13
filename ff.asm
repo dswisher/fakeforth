@@ -1,6 +1,6 @@
 
 _start:
-        LOAD IP, cold_start     ; set the IP to a reference to QUIT
+        LDW IP, cold_start      ; set the IP to a reference to QUIT
         JMP next
 
 
@@ -14,7 +14,7 @@ _start:
 ; ------------------
 DOCOL:  RPUSH IP                ; We're nesting down, so save the IP for when we're done
         ADD CA, $2              ; Move CA to point to the first data word
-        LOAD IP, CA             ; Put data word in IP
+        LDW IP, CA              ; Put data word in IP
         JMP next
 
 
@@ -24,7 +24,7 @@ DOCOL:  RPUSH IP                ; We're nesting down, so save the IP for when we
 ;                   - increments %esi by 4
 ;       jmp *(%eax) - jumps to address at memory address pointed to by eax
 ; ------------------
-next:   LOAD CA, (IP)
+next:   LDW CA, (IP)
         ADD IP, $2
         JMP (CA)
 
@@ -55,8 +55,8 @@ INTERPRET_code:
         CALL _WORD              ; returns X=addr, Y=len
 
         ; Is it in the dictionary?
-        LOAD X, $0
-        STORE X, (interpret_is_lit)
+        LDW X, $0
+        STW X, (interpret_is_lit)
         CALL _FIND
         CMP X, $0               ; found?
         JEQ _INTERP_1           ; nope
@@ -68,8 +68,8 @@ INTERPRET_code:
 
         ; Not in the dictionary; assume a literal number
 _INTERP_1:
-        LOAD Z, $1
-        STORE Z, (interpret_is_lit)
+        LDW Z, $1
+        STW Z, (interpret_is_lit)
         ; TODO
         HLT
 
@@ -117,7 +117,7 @@ EXIT_code:
         .dict "LIT"
 LIT:    .word LIT_code
 LIT_code:
-        LOAD X, (IP)
+        LDW X, (IP)
         ADD IP, $2
         DPUSH X
         JMP next
@@ -129,7 +129,7 @@ STORE:  .word STORE_code
 STORE_code:
         DPOP X                  ; address to store
         DPOP Y                  ; value to store
-        STORE Y, (X)            ; do it - store value of Y at address pointed to by X
+        STW Y, (X)              ; do it - store value of Y at address pointed to by X
         JMP next
 
 
@@ -138,7 +138,7 @@ STORE_code:
 FETCH:  .word FETCH_code
 FETCH_code:
         DPOP X                  ; address to fetch
-        LOAD Y, (X)             ; fetch it
+        LDW Y, (X)              ; fetch it
         DPUSH Y                 ; and put it on the stack
         JMP next
 
@@ -170,29 +170,41 @@ EMIT_code:
         .dict "FIND"
 FIND:   .word FIND_code
 FIND_code:
-        DPOP Y                   ; length
-        DPOP X                   ; address
+        DPOP N                   ; word length
+        DPOP M                   ; word address
         CALL _FIND
         DPUSH X
         JMP next
 
 _FIND:
-        LOAD Z, (var_LATEST)
+        LDW I, (var_LATEST)
 _FIND_1:
-        CMP Z, $0               ; is this the null pointer at the end of the linked list?
+        CMP I, $0               ; is this the null pointer at the end of the linked list?
         JEQ _FIND_4             ; ...yup...
 
         ; Compare the lengths
-        ; TODO
+        LDW X, $1               ; get length address...
+        ADD X, I                ; ...into X
+        LDW Y, (X)              ; get the length - TODO - should be byte load
+        CMP Y, N                ; do lengths match?
+        JNE _FIND_2
+
+        ; TODO - check the string
 
 
         ; TODO - HACK code - pretend not found
-        LOAD X, $0
+        LDW X, $0
         RET
+
+        ; Current word is not a match; try prior link
+_FIND_2:
+        LDW I, (I)
+        JMP _FIND_1
+
 
         ; Not found
 _FIND_4:
-        LOAD X, $0              ; return zero to indicate not found
+        LDW X, $0               ; return zero to indicate not found
         RET
 
 ; --- WORD
@@ -214,17 +226,18 @@ _WORD_1:
         CMP X, $20              ; whitespace?
         JLE _WORD_1
 
-        LOAD Z, word_buffer
+        LDW Z, word_buffer
 _WORD_2:
-        STOS X, Z               ; store character in X at Z, inc Z
+        STB X, (Z)
+        INC Z
         CALL _KEY
         CMP X, $20              ; space?
         JGT _WORD_2             ; nope, keep going
 
         ; Return the word (pointer to buffer) and length
-        LOAD Y, Z
+        LDW Y, Z
         SUB Y, word_buffer
-        LOAD X, word_buffer
+        LDW X, word_buffer
         RET
 
 _WORD_3:        ; skip \ comments to end of current line
@@ -247,7 +260,7 @@ word_buffer:
         .dict "LATEST"
 LATEST: .word LATEST_code       ; codeword
 LATEST_code:
-        LOAD X, var_LATEST
+        LDW X, var_LATEST
         DPUSH X                 ; TODO - DPUSH needs addressing modes!
         JMP next
 

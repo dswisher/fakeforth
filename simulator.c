@@ -272,7 +272,7 @@ unsigned short consume_word(Simulator *sim)
 }
 
 
-void execute_load(Simulator *sim, unsigned char mode)
+void execute_load(Simulator *sim, unsigned char mode, unsigned char code)
 {
     unsigned char reg1;
     unsigned char reg2;
@@ -282,45 +282,33 @@ void execute_load(Simulator *sim, unsigned char mode)
         case ADDR_MODE0:    // LOAD a, b
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
+            // TODO - disallow for byte opcode?
             set_register(sim, reg1, get_register(sim, reg2));
             break;
 
         case ADDR_MODE1:    // LOAD a, val
             reg1 = sim->memory[sim->pc++];
+            // TODO - consume byte or word, depending on code
             set_register(sim, reg1, consume_word(sim));
             break;
 
         case ADDR_MODE2:    // LOAD a, (b)
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
+            // TODO - read word or byte, depending on code
             set_register(sim, reg1, sim_read_word(sim, get_register(sim, reg2)));
             break;
 
         case ADDR_MODE3:    // LOAD a, (addr)
             reg1 = sim->memory[sim->pc++];
+            // TODO - read word or byte, depending on code
             set_register(sim, reg1, sim_read_word(sim, consume_word(sim)));
             break;
     }
 }
 
 
-void execute_stos(Simulator *sim)
-{
-    unsigned char reg1 = sim->memory[sim->pc++];
-    unsigned char reg2 = sim->memory[sim->pc++];
-
-    // Save the character
-    unsigned char value = get_register(sim, reg1);
-    unsigned short addr = get_register(sim, reg2);
-
-    sim->memory[addr] = value;
-
-    // Increment the pointer
-    set_register(sim, reg2, addr + 1);
-}
-
-
-void execute_store(Simulator *sim, unsigned char mode)
+void execute_store(Simulator *sim, unsigned char mode, unsigned char code)
 {
     unsigned char reg1;
     unsigned char reg2;
@@ -330,6 +318,7 @@ void execute_store(Simulator *sim, unsigned char mode)
         case ADDR_MODE0:    // STORE a, b
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
+            // TODO - disallow for byte opcode?
             set_register(sim, reg2, get_register(sim, reg1));
             break;
 
@@ -341,11 +330,13 @@ void execute_store(Simulator *sim, unsigned char mode)
         case ADDR_MODE2:    // STORE a, (b)
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
+            // TODO - write word or byte, depending on mode
             sim_write_word(sim, get_register(sim, reg2), get_register(sim, reg1));
             break;
 
         case ADDR_MODE3:    // STORE a, (addr)
             reg1 = sim->memory[sim->pc++];
+            // TODO - write word or byte, depending on mode
             sim_write_word(sim, consume_word(sim), get_register(sim, reg1));
             break;
     }
@@ -576,8 +567,9 @@ void sim_step(Simulator *sim)
             execute_jump(sim, mode, condition_le);
             break;
 
-        case OP_LOAD:
-            execute_load(sim, mode);
+        case OP_LDW:
+        case OP_LDB:
+            execute_load(sim, mode, code);
             break;
 
         case OP_ADD:
@@ -592,12 +584,9 @@ void sim_step(Simulator *sim)
             execute_cmp(sim, mode);
             break;
 
-        case OP_STORE:
-            execute_store(sim, mode);
-            break;
-
-        case OP_STOS:
-            execute_stos(sim);
+        case OP_STW:
+        case OP_STB:
+            execute_store(sim, mode, code);
             break;
 
         case OP_DPUSH:
@@ -828,9 +817,10 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
             }
             break;
 
-        case OP_LOAD:
-        case OP_STORE:
-        case OP_STOS:
+        case OP_LDW:
+        case OP_LDB:
+        case OP_STW:
+        case OP_STB:
         case OP_DPUSH:
         case OP_RPUSH:
         case OP_DPOP:
@@ -854,13 +844,10 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
     // Handle the second argument
     switch (code)
     {
-        case OP_STOS:
-            strcat(buf, ", ");
-            disassemble_register(sim, buf, addr);
-            break;
-
-        case OP_LOAD:
-        case OP_STORE:
+        case OP_LDW:
+        case OP_LDB:
+        case OP_STW:
+        case OP_STB:
         case OP_ADD:
         case OP_SUB:
         case OP_CMP:
