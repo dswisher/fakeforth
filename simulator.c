@@ -247,6 +247,12 @@ StackNode *push_register(Simulator *sim, unsigned char reg, StackNode *next)
 }
 
 
+void sim_write_byte(Simulator *sim, unsigned short addr, unsigned short value)
+{
+    sim->memory[addr] = value & 0xFF;
+}
+
+
 void sim_write_word(Simulator *sim, unsigned short addr, unsigned short value)
 {
     sim->memory[addr] = value >> 8;         // hi byte
@@ -330,14 +336,12 @@ void execute_store(Simulator *sim, unsigned char mode, unsigned char code)
         case ADDR_MODE2:    // STORE a, (b)
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
-            // TODO - write word or byte, depending on mode
-            sim_write_word(sim, get_register(sim, reg2), get_register(sim, reg1));
+            sim_write_byte(sim, get_register(sim, reg2), get_register(sim, reg1));
             break;
 
         case ADDR_MODE3:    // STORE a, (addr)
             reg1 = sim->memory[sim->pc++];
-            // TODO - write word or byte, depending on mode
-            sim_write_word(sim, consume_word(sim), get_register(sim, reg1));
+            sim_write_byte(sim, consume_word(sim), get_register(sim, reg1));
             break;
     }
 }
