@@ -1,7 +1,6 @@
 ## TODO ##
 
 * Virtual Machine
-  * Remove STOS hack and redo load and store opcodes to have both a word flavor and a byte flavor
   * Implement bitwise opcodes: AND, OR, XOR, NOT
   * On reset, clear input buffers
   * Should arith operators (ADD, SUB, AND, etc) set the zero flag?
@@ -14,7 +13,6 @@
   * Implement tracepoints (print summary state when line is hit)
   * Show ascii character(s) next to registers, perhaps disassembly (CMP X, 0x005C  .\)
   * Change `pc` and similar commands to just push an "address" on the stack, then implement `@` and `!` so we can update registers
-  * Keep track of the last PC and show that one bit of history when disassembling
   * In `print`, show symbols that match register values?
   * Implement reverse symbol lookup word (find symbol given address)
   * Implement a word to dump a Forth dictionary entry
@@ -35,6 +33,7 @@
 ## DONE ##
 
 * Virtual Machine
+  * ~~Remove STOS hack and redo load and store opcodes to have both a word flavor and a byte flavor~~
   * ~~Implement SUB opcode~~
   * ~~Need ability to store a word or just a byte (WORD is not working, as high byte overwrites prev char); perhaps store string opcode? STOS?~~
   * ~~Implement conditional jump opcodes: JEQ, JNE, etc.~~
@@ -49,6 +48,7 @@
   * ~~Implement `EMIT`, which requires new PUTC opcode~~
   * ~~Implement `LIT`, `!` and `@`~~
 * Debugger:
+  * ~~Keep track of the last PC and show that one bit of history when disassembling~~
   * ~~BAD IDEA: Do not show symbols for mode 1 addressing~~
   * ~~For readline history, don't add to history if its the same as the last entry (no dups)~~
   * ~~Implement breakpoints and a restart command~~

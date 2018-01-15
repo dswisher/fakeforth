@@ -260,12 +260,26 @@ void sim_write_word(Simulator *sim, unsigned short addr, unsigned short value)
 }
 
 
+unsigned short sim_read_byte(Simulator *sim, unsigned short addr)
+{
+    return sim->memory[addr];
+}
+
+
 unsigned short sim_read_word(Simulator *sim, unsigned short addr)
 {
     unsigned char hi_byte = sim->memory[addr];
     unsigned char lo_byte = sim->memory[addr + 1];
 
     return (hi_byte << 8) + lo_byte;
+}
+
+
+unsigned short consume_byte(Simulator *sim)
+{
+    unsigned char byte = sim->memory[sim->pc++];
+
+    return byte;
 }
 
 
@@ -294,21 +308,39 @@ void execute_load(Simulator *sim, unsigned char mode, unsigned char code)
 
         case ADDR_MODE1:    // LOAD a, val
             reg1 = sim->memory[sim->pc++];
-            // TODO - consume byte or word, depending on code
-            set_register(sim, reg1, consume_word(sim));
+            if (code == OP_LDB)
+            {
+                set_register(sim, reg1, consume_byte(sim));
+            }
+            else
+            {
+                set_register(sim, reg1, consume_word(sim));
+            }
             break;
 
         case ADDR_MODE2:    // LOAD a, (b)
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
-            // TODO - read word or byte, depending on code
-            set_register(sim, reg1, sim_read_word(sim, get_register(sim, reg2)));
+            if (code == OP_LDB)
+            {
+                set_register(sim, reg1, sim_read_byte(sim, get_register(sim, reg2)));
+            }
+            else
+            {
+                set_register(sim, reg1, sim_read_word(sim, get_register(sim, reg2)));
+            }
             break;
 
         case ADDR_MODE3:    // LOAD a, (addr)
             reg1 = sim->memory[sim->pc++];
-            // TODO - read word or byte, depending on code
-            set_register(sim, reg1, sim_read_word(sim, consume_word(sim)));
+            if (code == OP_LDB)
+            {
+                set_register(sim, reg1, sim_read_byte(sim, consume_word(sim)));
+            }
+            else
+            {
+                set_register(sim, reg1, sim_read_word(sim, consume_word(sim)));
+            }
             break;
     }
 }
@@ -336,12 +368,26 @@ void execute_store(Simulator *sim, unsigned char mode, unsigned char code)
         case ADDR_MODE2:    // STORE a, (b)
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
-            sim_write_byte(sim, get_register(sim, reg2), get_register(sim, reg1));
+            if (code == OP_STB)
+            {
+                sim_write_byte(sim, get_register(sim, reg2), get_register(sim, reg1));
+            }
+            else
+            {
+                sim_write_word(sim, get_register(sim, reg2), get_register(sim, reg1));
+            }
             break;
 
         case ADDR_MODE3:    // STORE a, (addr)
             reg1 = sim->memory[sim->pc++];
-            sim_write_byte(sim, consume_word(sim), get_register(sim, reg1));
+            if (code == OP_STB)
+            {
+                sim_write_byte(sim, consume_byte(sim), get_register(sim, reg1));
+            }
+            else
+            {
+                sim_write_word(sim, consume_word(sim), get_register(sim, reg1));
+            }
             break;
     }
 }
@@ -524,7 +570,8 @@ void sim_step(Simulator *sim)
         return;
     }
 
-    unsigned short loc = sim->pc;
+    sim->last_pc = sim->pc;
+
     unsigned char opcode = sim->memory[sim->pc++];
     unsigned char reg;
     unsigned short addr;
@@ -538,7 +585,7 @@ void sim_step(Simulator *sim)
             break;
 
         case OP_HLT:
-            printf("HLT at 0x%04X\n", loc);
+            printf("HLT at 0x%04X\n", sim->last_pc);
             sim->halted = TRUE;
             sim->pc--;
             break;
@@ -644,7 +691,7 @@ void sim_step(Simulator *sim)
             break;
 
         default:
-            printf("Illegal opcode 0x%02X at 0x%04X (code 0x%02X, mode 0x%02X)\n", opcode, loc, code, mode);
+            printf("Illegal opcode 0x%02X at 0x%04X (code 0x%02X, mode 0x%02X)\n", opcode, sim->last_pc, code, mode);
             sim->halted = TRUE;
             break;
     }

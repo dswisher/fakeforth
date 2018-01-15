@@ -170,8 +170,8 @@ EMIT_code:
         .dict "FIND"
 FIND:   .word FIND_code
 FIND_code:
-        DPOP N                   ; word length
-        DPOP M                   ; word address
+        DPOP Y                   ; word length
+        DPOP X                   ; word address
         CALL _FIND
         DPUSH X
         JMP next
@@ -183,11 +183,11 @@ _FIND_1:
         JEQ _FIND_4             ; ...yup...
 
         ; Compare the lengths
-        LDW X, $1               ; get length address...
-        ADD X, I                ; ...into X
-        LDW Y, (X)              ; get the length - TODO - should be byte load
+        LDW M, $2               ; get length address...
+        ADD M, I                ; ...into X
+        LDB N, (M)              ; get the length
         CMP Y, N                ; do lengths match?
-        JNE _FIND_2
+        JNE _FIND_2             ; nope, try again
 
         ; TODO - check the string
 

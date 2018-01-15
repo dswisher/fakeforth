@@ -49,6 +49,9 @@ typedef struct Simulator
     int num_breakpoints;
     unsigned short *breakpoints;
 
+    // Debugging helpers
+    unsigned short last_pc;
+
     // Symbols
     int num_symbols;
     SimSymbol **symbols;

@@ -459,6 +459,11 @@ void dc_print(Context *context)
 
     puts("");
 
+    if (sim->last_pc != sim->pc)
+    {
+        sim_disassemble(sim, sim->last_pc, 1);
+    }
+
     sim_disassemble(sim, sim->pc, 3);
 }
 
