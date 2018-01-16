@@ -626,6 +626,57 @@ void dc_reset(Context *context)
 }
 
 
+char *read_dict_string(Simulator *sim, unsigned short addr)
+{
+    unsigned char len = sim_read_byte(sim, addr);
+
+    static char buf[MAXCHAR];
+    memset(buf, 0, MAXCHAR);
+    for (int i = 0; i < len; i++)
+    {
+        buf[i] = sim->memory[addr + 1 + i];
+    }
+    return buf;
+}
+
+
+void dc_dict(Context *context)
+{
+    if (context->stack == NULL)
+    {
+        printf("usage: (addr --)\n");
+        return;
+    }
+
+    unsigned short addr = do_pop(context);
+
+    Simulator *sim = context->sim;
+
+    unsigned short prev = sim_read_word(sim, addr);
+    unsigned char len = sim_read_byte(sim, addr + 2);
+    unsigned short codeAddr = sim_read_word(sim, addr + 3 + len);
+
+    char name[MAXCHAR];
+    strcpy(name, read_dict_string(sim, addr + 2));
+
+    char code[MAXCHAR];
+    unsigned short docolAddr;
+    sim_lookup_symbol(context->sim, "DOCOL", &docolAddr);
+    if (codeAddr == docolAddr)
+    {
+        strcpy(code, "DOCOL");
+    }
+    else
+    {
+        sprintf(code, "0x%04X", codeAddr);
+    }
+
+    printf("         +--------+----+-----------------+--------+\n");
+    printf(" 0x%04X: | 0x%04X | %2d | %-15.15s | %6s |\n", addr, prev, len, name, code);
+    printf("         +--------+----+-----------------+--------+\n");
+}
+
+
 void add_command(Context *context, char *name, void (*func)(Context *context))
 {
     DebugCommand *command = malloc(sizeof(DebugCommand));
@@ -675,6 +726,7 @@ Context *create_context(Simulator *sim)
     add_command(context, "break", dc_toggle_breakpoint);
     add_command(context, "b", dc_toggle_breakpoint);
     add_command(context, "reset", dc_reset);
+    add_command(context, "dict", dc_dict);
 
     // TODO - help
 

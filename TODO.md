@@ -15,7 +15,6 @@
   * Change `pc` and similar commands to just push an "address" on the stack, then implement `@` and `!` so we can update registers
   * In `print`, show symbols that match register values?
   * Implement reverse symbol lookup word (find symbol given address)
-  * Implement a word to dump a Forth dictionary entry
   * Implement simple arithmetic
   * Tie source code (via map file?) into debugger and show via `list`
   * Make aliases into aliases ("p" for "print") rather than defining the word multiple times
@@ -48,6 +47,7 @@
   * ~~Implement `EMIT`, which requires new PUTC opcode~~
   * ~~Implement `LIT`, `!` and `@`~~
 * Debugger:
+  * ~~Implement a word to dump a Forth dictionary entry~~
   * ~~Keep track of the last PC and show that one bit of history when disassembling~~
   * ~~BAD IDEA: Do not show symbols for mode 1 addressing~~
   * ~~For readline history, don't add to history if its the same as the last entry (no dups)~~

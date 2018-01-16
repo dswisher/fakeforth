@@ -336,6 +336,15 @@ bool parse_pseudo(Context *context, int argc, char *argv[])
         // Save the current addr
         unsigned short addr = context->origin;
 
+        // Build a symbol to point to the dict entry
+        char sym[MAXCHAR];
+        strcpy(sym, name);
+        strcat(sym, "_word");
+
+        // TODO - strip special symbols
+        Symbol *symbol = add_symbol(context, sym);
+        symbol->location = context->origin;
+
         // Set up the entry
         add_word(context, context->last_dict);  // pointer to prev word
         add_byte(context, len);                 // length - TODO - need flags for immediate and whatnot!

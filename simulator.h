@@ -66,6 +66,7 @@ void sim_disassemble(Simulator *sim, unsigned short addr, int num);
 char *sim_reverse_lookup_symbol(Simulator *sim, unsigned short addr);
 bool sim_lookup_symbol(Simulator *sim, char *name, unsigned short *addr);
 unsigned short sim_read_word(Simulator *sim, unsigned short addr);
+unsigned short sim_read_byte(Simulator *sim, unsigned short addr);
 void sim_toggle_breakpoint(Simulator *sim, unsigned short addr);
 void sim_reset(Simulator *sim);
 

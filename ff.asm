@@ -49,6 +49,7 @@ QUIT:   .word DOCOL             ; codeword - the interpreter
 
 ; --- INTERPRET
 
+        ; TODO - no dict entry?
 INTERPRET:
         .word INTERPRET_code
 INTERPRET_code:
