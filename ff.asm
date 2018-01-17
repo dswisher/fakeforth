@@ -56,16 +56,17 @@ INTERPRET_code:
         CALL _WORD              ; returns X=addr, Y=len
 
         ; Is it in the dictionary?
-        LDW X, $0
-        STW X, (interpret_is_lit)
+        LDW Z, $0
+        STW Z, (interpret_is_lit)
         CALL _FIND
         CMP X, $0               ; found?
         JEQ _INTERP_1           ; nope
 
         ; In the dictionary. Is it an IMMEDIATE codeword?
-        ; TODO
+        ; TODO - test for immediate by checking flags, and jump if it is
+        CALL _TCFA              ; takes dict pointer in X and returns codeword address in X
 
-        JMP next
+        JMP _INTERP_2           ; not immediate
 
         ; Not in the dictionary; assume a literal number
 _INTERP_1:
@@ -74,8 +75,50 @@ _INTERP_1:
         ; TODO
         HLT
 
+        ; We have a word, are we compiling or executing?
+_INTERP_2:
+        ; TODO - test STATE to see if we're executing or compiling
+
+        JMP _INTERP_4           ; executing
+
+        ; TODO - _INTERP_3 - compile the word
+
+        ; Executing - run the word
+_INTERP_4:
+        LDW Z, (interpret_is_lit)
+        CMP Z, $0
+        JNE _INTERP_5           ; literal!
+
+        ; Not a literal, execute it now. This never returns, but the word
+        ; will eventually JMP next, which will reenter the loop in QUIT.
+        JMP (X)
+
+        ; Executing a literal - push it on the stack
+_INTERP_5:
+        ; TODO
+        HLT
+        
+
 interpret_is_lit:
         .word $0                ; flag used to record if reading a literal
+
+
+; --- >CFA
+        .dict ">CFA"
+TCFA:   .word TCFA_code
+TCFA_code:
+        DPOP X
+        CALL _TCFA
+        DPUSH X
+        JMP next
+
+        ; Convert dict pointer in X to codeword pointer in X; klobbers M
+_TCFA:  ADD X, $2               ; skip link pointer
+        LDB M, (X)              ; load len+flags into M
+        INC X                   ; skip len+flags
+        ; TODO - mask the flags in M to get just the length
+        ADD X, M                ; skip the name
+        RET
 
 
 ; --- BRANCH
@@ -188,13 +231,29 @@ _FIND_1:
         ADD M, I                ; ...into X
         LDB N, (M)              ; get the length
         CMP Y, N                ; do lengths match?
-        JNE _FIND_2             ; nope, try again
+        JNE _FIND_2             ; nope, try next dict entry
 
-        ; TODO - check the string
+        ; Lengths match, check the string
+        DPUSH X                 ; save the address
+        DPUSH Y                 ; save the length
+        LDW Z, $3               ; point Z to the dict string...
+        ADD Z, I                ; ...we want to compare
+_FIND_x:
+        LDB N, (X)              ; get the bytes...
+        LDB M, (Z)              ; ...to compare
+        CMP M, N
+        JNE _FIND_3             ; strings do not match
 
+        INC X                   ; inc word address
+        INC Z                   ; inc dict address
+        DEC Y                   ; dec length
+        CMP Y, $0
+        JNE _FIND_x             ; compare remaining chars
 
-        ; TODO - HACK code - pretend not found
-        LDW X, $0
+        ; Hey! We have a match!
+        DPOP Y                  ; clean up the stack
+        DPOP X
+        LDW X, I                ; return dict pointer
         RET
 
         ; Current word is not a match; try prior link
@@ -202,6 +261,11 @@ _FIND_2:
         LDW I, (I)
         JMP _FIND_1
 
+        ; String does not match; restore X and Y and move on to next dict entry
+_FIND_3:
+        DPOP Y                  ; restore length
+        DPOP X                  ; restore address
+        JMP _FIND_2
 
         ; Not found
 _FIND_4:
