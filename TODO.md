@@ -5,7 +5,6 @@
   * On reset, clear input buffers
   * Should arith operators (ADD, SUB, AND, etc) set the zero flag?
 * Forth
-  * Implement `FIND`
   * Implement `>NUMBER` (`NUMBER` in JonesForth?)
   * Implement `,` (comma)
   * Implement `INTERPRET`
@@ -32,6 +31,7 @@
 ## DONE ##
 
 * Virtual Machine
+  * ~~Implement MUL~~
   * ~~Remove STOS hack and redo load and store opcodes to have both a word flavor and a byte flavor~~
   * ~~Implement SUB opcode~~
   * ~~Need ability to store a word or just a byte (WORD is not working, as high byte overwrites prev char); perhaps store string opcode? STOS?~~
@@ -41,6 +41,7 @@
   * ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~
   * ~~Get rid of GO and replace with JMP with proper address modes~~
 * Forth
+  * ~~Implement `FIND`~~
   * ~~Implement `WORD`~~
   * ~~Change sample to do 2DUP, which calls DUP, to see if nesting works~~
   * ~~Implement `KEY`, which requires new GETC opcode~~

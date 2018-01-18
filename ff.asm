@@ -1,3 +1,11 @@
+; Register mapping between x86 jonesforth.S and this code
+; TODO - note - this was adopted late, so isn't precisely followed yet!
+;   %eax - A
+;   %ebx - B
+;   %ecx - C
+;   %edx - D
+;   %esi - M
+;   %edi - N
 
 _start:
         LDW IP, cold_start      ; set the IP to a reference to QUIT
@@ -72,8 +80,11 @@ INTERPRET_code:
 _INTERP_1:
         LDW Z, $1
         STW Z, (interpret_is_lit)
-        ; TODO
-        HLT
+        CALL _NUMBER            ; Returns the parsed number in A, C > 0 if error
+        CMP C, $0
+        JNE _INTERP_6
+        LDW Y, X                ; save number in Y
+        LDW X, LIT
 
         ; We have a word, are we compiling or executing?
 _INTERP_2:
@@ -95,16 +106,68 @@ _INTERP_4:
 
         ; Executing a literal - push it on the stack
 _INTERP_5:
+        DPUSH X
+        JMP next
+        
+        ; Parse error (not a known word or valid number). Print error message and perhaps some context.
+_INTERP_6:
         ; TODO
         HLT
-        
 
 interpret_is_lit:
         .word $0                ; flag used to record if reading a literal
 
 
-; --- >CFA
-        .dict ">CFA"
+; --- >NUMBER  (NUMBER in JonesForth)
+        .dict ">NUMBER"
+NUMBER: .word NUMBER_code
+NUMBER_code:
+        DPOP C                  ; length of string
+        DPOP N                  ; string address
+        CALL _NUMBER
+        DPUSH A                 ; parsed number
+        DPUSH C                 ; number of unparsed chars (0 = no error)
+        JMP next
+
+        ; Parse number; length in C, address in N
+_NUMBER:
+        CMP C, $0               ; trying to parse a zero-length string is an error, but will return 0
+        JEQ _NUMBER_5
+
+        LDW D, (var_BASE)
+
+        ; Check if first char is '-'
+        LDB B, (N)
+        INC N
+        LDW Z, $0
+        DPUSH Z
+        CMP B, $'-'
+        JNE _NUMBER_2
+        DPOP Z                  ; throw away
+        LDW Z, $1
+        DPUSH Z                 ; push <> 0 to indicate negative
+        DEC C                   ; decrement the length, as we consumed the '-'
+        CMP C, $0
+        JNE _NUMBER_1
+        DPOP Z                  ; error, string is only '-'
+        LDW C, $1
+        RET
+
+_NUMBER_1:
+        MUL A, D                ; A *= BASE
+        ; TODO - HACK!
+        NOP
+
+_NUMBER_2:
+        ; TODO - HACK!
+        NOP
+
+_NUMBER_5:
+        RET
+
+
+; --- >BODY  (>CFA in JonesForth)
+        .dict ">BODY"
 TCFA:   .word TCFA_code
 TCFA_code:
         DPOP X
@@ -284,6 +347,7 @@ WORD_code:
 _WORD:  
         ; Search for first non-blank character, skipping \ comments
         ; Returns length in Y and address in X
+        ; TODO - return length in C and address in N
 _WORD_1:
         CALL _KEY               ; get next key, returned in X
         CMP X, $'\'             ; is it the start of a comment?
@@ -335,9 +399,11 @@ LATEST_code:
 
 _dad:   .word $DAD              ; TODO - remove this
 
+var_BASE:
+        .word $A
+
 var_LATEST:
-        .lastdict
-        ; .word LATEST_head       ; must be the most recent dictionary entry!
+        .lastdict               ; most recent entry in dictionary
 
 
 

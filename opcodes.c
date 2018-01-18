@@ -1,6 +1,7 @@
 
 #include <string.h>
 
+#include "common.h"
 #include "opcodes.h"
 
 typedef struct NameMap
@@ -28,6 +29,7 @@ NameMap name_map[] =
     { "GETC", OP_GETC },
     { "PUTC", OP_PUTC },
     { "ADD", OP_ADD },
+    { "MUL", OP_MUL },
     { "SUB", OP_SUB },
     { "CALL", OP_CALL },
     { "RET", OP_RET },
@@ -40,6 +42,32 @@ NameMap name_map[] =
 };
 
 int num_ops = sizeof(name_map) / sizeof(name_map[0]);
+
+
+typedef struct RegisterMap
+{
+    unsigned char val;
+    char *name;
+} RegisterMap;
+
+RegisterMap register_map[] =
+{
+    { REG_IP, "IP" },
+    { REG_CA, "CA" },
+    { REG_A, "A" },
+    { REG_B, "B" },
+    { REG_C, "C" },
+    { REG_D, "D" },
+    { REG_I, "I" },
+    { REG_J, "J" },
+    { REG_M, "M" },
+    { REG_N, "N" },
+    { REG_X, "X" },
+    { REG_Y, "Y" },
+    { REG_Z, "Z" },
+};
+
+int num_registers = sizeof(register_map) / sizeof(register_map[0]);
 
 
 char *op_code_to_name(unsigned char code)
@@ -69,5 +97,47 @@ unsigned char op_name_to_code(char *name)
 
     // Unknown!
     return 0;
+}
+
+
+bool op_is_register(char *name)
+{
+    for (int i = 0; i < num_registers; i++)
+    {
+        if (!strcmp(name, register_map[i].name))
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+
+unsigned char op_name_to_register(char *name)
+{
+    for (int i = 0; i < num_registers; i++)
+    {
+        if (!strcmp(name, register_map[i].name))
+        {
+            return register_map[i].val;
+        }
+    }
+
+    return 0;
+}
+
+
+char *op_register_to_name(unsigned char code)
+{
+    for (int i = 0; i < num_registers; i++)
+    {
+        if (code == register_map[i].val)
+        {
+            return register_map[i].name;
+        }
+    }
+
+    return NULL;
 }
 

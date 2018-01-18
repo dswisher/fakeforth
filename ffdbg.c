@@ -447,15 +447,15 @@ void dc_print(Context *context)
     format_stack(rs, sim->return_stack);
     format_stack(cs, sim->call_stack);
 
-    printf("    PC: 0x%04X    I: 0x%04X     Data: %s\n", sim->pc, sim->i, ds);
-    printf("    IP: 0x%04X    J: 0x%04X   Return: %s\n", sim->ip, sim->j, rs);
-    printf("    CA: 0x%04X    M: 0x%04X     Call: %s\n", sim->ca, sim->m, cs);
-    printf("     X: 0x%04X    N: 0x%04X\n", sim->x, sim->n);
-    printf("     Y: 0x%04X    Flags, lt: %d   eq: %d   gt: %d\n", sim->y,
+    printf("    PC: 0x%04X    I: 0x%04X    A: 0x%04X     Data: %s\n", sim->pc, sim->i, sim->a, ds);
+    printf("    IP: 0x%04X    J: 0x%04X    B: 0x%04X   Return: %s\n", sim->ip, sim->j, sim->b, rs);
+    printf("    CA: 0x%04X    M: 0x%04X    C: 0x%04X     Call: %s\n", sim->ca, sim->m, sim->c, cs);
+    printf("     X: 0x%04X    N: 0x%04X    D: 0x%04X\n", sim->x, sim->n, sim->d);
+    printf("     Y: 0x%04X\n", sim->y);
+    printf("     Z: 0x%04X    Flags, lt: %d   eq: %d   gt: %d\n", sim->z,
             (sim->flags & FLAG_LT) == FLAG_LT,
             (sim->flags & FLAG_EQUAL) == FLAG_EQUAL,
             (sim->flags & FLAG_GT) == FLAG_GT);
-    printf("     Z: 0x%04X\n", sim->z);
 
     puts("");
 

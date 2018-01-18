@@ -13,6 +13,7 @@
 
 #define SEPS " \t,"
 
+
 typedef struct ArgCount
 {
     unsigned char opcode;
@@ -41,6 +42,7 @@ ArgCount arg_counts[] =
     { OP_GETC, 1 },
     { OP_PUTC, 1 },
     { OP_ADD, 2 },
+    { OP_MUL, 2 },
     { OP_SUB, 2 },
     { OP_CALL, 1 },
     { OP_CMP, 2 },
@@ -392,74 +394,15 @@ bool verify_arg_count(Context *context, int argc, unsigned char opcode)
 
 bool add_register(Context *context, char *name)
 {
-    if (!strcmp(name, "IP"))
-    {
-        add_byte(context, REG_IP);
-        return TRUE;
-    }
+    unsigned char reg = op_name_to_register(name);
 
-    if (!strcmp(name, "CA"))
+    if (reg > 0)
     {
-        add_byte(context, REG_CA);
-        return TRUE;
-    }
-
-    if (!strcmp(name, "I"))
-    {
-        add_byte(context, REG_I);
-        return TRUE;
-    }
-
-    if (!strcmp(name, "J"))
-    {
-        add_byte(context, REG_J);
-        return TRUE;
-    }
-
-    if (!strcmp(name, "M"))
-    {
-        add_byte(context, REG_M);
-        return TRUE;
-    }
-
-    if (!strcmp(name, "N"))
-    {
-        add_byte(context, REG_N);
-        return TRUE;
-    }
-
-    if (!strcmp(name, "X"))
-    {
-        add_byte(context, REG_X);
-        return TRUE;
-    }
-
-    if (!strcmp(name, "Y"))
-    {
-        add_byte(context, REG_Y);
-        return TRUE;
-    }
-
-    if (!strcmp(name, "Z"))
-    {
-        add_byte(context, REG_Z);
+        add_byte(context, reg);
         return TRUE;
     }
 
     print_error(context, "Unknown register: |%s|\n", name);
-    return FALSE;
-}
-
-
-bool is_register(char *str)
-{
-    if (!strcmp(str, "IP") || !strcmp(str, "CA") || !strcmp(str, "I") || !strcmp(str, "J")
-            || !strcmp(str, "M") || !strcmp(str, "N")
-            || !strcmp(str, "X") || !strcmp(str, "Y") || !strcmp(str, "Z"))
-    {
-        return TRUE;
-    }
-
     return FALSE;
 }
 
@@ -482,7 +425,7 @@ char *deref_argument(char *arg)
 
 int parse_address_mode(Context *context, char *arg)
 {
-    if (is_register(arg))
+    if (op_is_register(arg))
     {
         return ADDR_MODE0;
     }
@@ -495,7 +438,7 @@ int parse_address_mode(Context *context, char *arg)
     if (arg[0] == '(' && strrchr(arg, ')') != NULL)
     {
         char *inner = deref_argument(arg);
-        if (is_register(inner))
+        if (op_is_register(inner))
         {
             return ADDR_MODE2;
         }
@@ -607,6 +550,7 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_LDW:
         case OP_LDB:
         case OP_ADD:
+        case OP_MUL:
         case OP_SUB:
         case OP_CMP:
             mode = parse_address_mode(context, argv[2]);
@@ -665,6 +609,7 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_GETC:
         case OP_PUTC:
         case OP_ADD:
+        case OP_MUL:
         case OP_SUB:
         case OP_CMP:
             if (!add_register(context, argv[1]))
@@ -682,6 +627,7 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_STW:
         case OP_STB:
         case OP_ADD:
+        case OP_MUL:
         case OP_SUB:
         case OP_CMP:
             if (!add_by_mode(context, mode, argv[2]))

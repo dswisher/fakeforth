@@ -26,7 +26,7 @@
 #define OP_JLT      OPCODE(20)
 #define OP_JGE      OPCODE(21)
 #define OP_JLE      OPCODE(22)
-// TODO - gap
+#define OP_MUL      OPCODE(23)
 #define OP_SUB      OPCODE(24)
 #define OP_LDW      OPCODE(25)
 #define OP_LDB      OPCODE(26)
@@ -45,6 +45,10 @@
 #define REG_PC      0x01
 #define REG_IP      0x02
 #define REG_CA      0x03
+#define REG_A       0x04
+#define REG_B       0x05
+#define REG_C       0x06
+#define REG_D       0x07
 #define REG_I       0x0C
 #define REG_J       0x0D
 #define REG_M       0x0E
@@ -60,5 +64,9 @@
 
 unsigned char op_name_to_code(char *name);
 char *op_code_to_name(unsigned char code);
+
+bool op_is_register(char *name);
+unsigned char op_name_to_register(char *name);
+char *op_register_to_name(unsigned char code);
 
 #endif

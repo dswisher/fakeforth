@@ -28,7 +28,11 @@ typedef struct Simulator
     unsigned short pc;      // program counter
     unsigned short ip;      // instruction pointer
     unsigned short ca;      // code address pointer
-    unsigned short i;       // scratch registers
+    unsigned short a;       // scratch registers
+    unsigned short b;
+    unsigned short c;
+    unsigned short d;
+    unsigned short i;
     unsigned short j;
     unsigned short m;
     unsigned short n;

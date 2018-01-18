@@ -99,6 +99,18 @@ unsigned short get_register(Simulator *sim, unsigned char reg)
         case REG_CA:
             return sim->ca;
 
+        case REG_A:
+            return sim->a;
+
+        case REG_B:
+            return sim->b;
+
+        case REG_C:
+            return sim->c;
+
+        case REG_D:
+            return sim->d;
+
         case REG_I:
             return sim->i;
 
@@ -142,6 +154,22 @@ void set_register(Simulator *sim, unsigned char reg, unsigned short value)
 
         case REG_CA:
             sim->ca = value;
+            break;
+
+        case REG_A:
+            sim->a = value;
+            break;
+
+        case REG_B:
+            sim->b = value;
+            break;
+
+        case REG_C:
+            sim->c = value;
+            break;
+
+        case REG_D:
+            sim->d = value;
             break;
 
         case REG_I:
@@ -393,6 +421,12 @@ void execute_store(Simulator *sim, unsigned char mode, unsigned char code)
 }
 
 
+unsigned short mul_operation(unsigned short a, unsigned short b)
+{
+    return a * b;
+}
+
+
 unsigned short add_operation(unsigned short a, unsigned short b)
 {
     return a + b;
@@ -631,6 +665,10 @@ void sim_step(Simulator *sim)
             execute_arithmetic(sim, mode, sub_operation);
             break;
 
+        case OP_MUL:
+            execute_arithmetic(sim, mode, mul_operation);
+            break;
+
         case OP_CMP:
             execute_cmp(sim, mode);
             break;
@@ -731,47 +769,15 @@ void disassemble_register(Simulator *sim, char *buf, unsigned short *addr)
 {
     unsigned char code = sim->memory[(*addr)++];
 
-    switch (code)
+    char *name = op_register_to_name(code);
+
+    if (name != NULL)
     {
-        case REG_IP:
-            strcat(buf, "IP");
-            break;
-
-        case REG_CA:
-            strcat(buf, "CA");
-            break;
-
-        case REG_I:
-            strcat(buf, "I");
-            break;
-
-        case REG_J:
-            strcat(buf, "J");
-            break;
-
-        case REG_M:
-            strcat(buf, "M");
-            break;
-
-        case REG_N:
-            strcat(buf, "N");
-            break;
-
-        case REG_X:
-            strcat(buf, "X");
-            break;
-
-        case REG_Y:
-            strcat(buf, "Y");
-            break;
-
-        case REG_Z:
-            strcat(buf, "Z");
-            break;
-
-        default:
-            strcat(buf, "??");
-            break;
+        strcat(buf, name);
+    }
+    else
+    {
+        strcat(buf, "??");
     }
 }
 
@@ -880,6 +886,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_DEC:
         case OP_PUTC:
         case OP_ADD:
+        case OP_MUL:
         case OP_SUB:
         case OP_CMP:
             strcat(buf, " ");
@@ -900,6 +907,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_STW:
         case OP_STB:
         case OP_ADD:
+        case OP_MUL:
         case OP_SUB:
         case OP_CMP:
             switch (mode)
@@ -1006,6 +1014,10 @@ void sim_reset(Simulator *sim)
     sim->pc = 0x0000;
     sim->ip = 0x0000;
     sim->ca = 0x0000;
+    sim->a = 0x0000;
+    sim->b = 0x0000;
+    sim->c = 0x0000;
+    sim->d = 0x0000;
     sim->i = 0x0000;
     sim->j = 0x0000;
     sim->m = 0x0000;
