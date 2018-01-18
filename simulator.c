@@ -848,6 +848,8 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_JNE:
         case OP_JGT:
         case OP_JLT:
+        case OP_JGE:
+        case OP_JLE:
             switch (mode)
             {
                 case ADDR_MODE0:

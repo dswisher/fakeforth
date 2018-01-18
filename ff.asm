@@ -1,11 +1,3 @@
-; Register mapping between x86 jonesforth.S and this code
-; TODO - note - this was adopted late, so isn't precisely followed yet!
-;   %eax - A
-;   %ebx - B
-;   %ecx - C
-;   %edx - D
-;   %esi - M
-;   %edi - N
 
 _start:
         LDW IP, cold_start      ; set the IP to a reference to QUIT
@@ -64,27 +56,26 @@ INTERPRET_code:
         CALL _WORD              ; returns X=addr, Y=len
 
         ; Is it in the dictionary?
-        LDW Z, $0
-        STW Z, (interpret_is_lit)
+        LDW A, $0
+        STW A, (interpret_is_lit)
         CALL _FIND
-        CMP X, $0               ; found?
+        CMP Z, $0               ; found?
         JEQ _INTERP_1           ; nope
 
         ; In the dictionary. Is it an IMMEDIATE codeword?
         ; TODO - test for immediate by checking flags, and jump if it is
-        CALL _TCFA              ; takes dict pointer in X and returns codeword address in X
+        CALL _TCFA              ; takes dict pointer in Z and returns codeword address in Z
 
         JMP _INTERP_2           ; not immediate
 
         ; Not in the dictionary; assume a literal number
 _INTERP_1:
-        LDW Z, $1
-        STW Z, (interpret_is_lit)
-        CALL _NUMBER            ; Returns the parsed number in A, C > 0 if error
-        CMP C, $0
+        LDW A, $1
+        STW A, (interpret_is_lit)
+        CALL _NUMBER            ; Returns the parsed number in X, Y > 0 if error
+        CMP Y, $0
         JNE _INTERP_6
-        LDW Y, X                ; save number in Y
-        LDW X, LIT
+        LDW Z, LIT
 
         ; We have a word, are we compiling or executing?
 _INTERP_2:
@@ -96,13 +87,13 @@ _INTERP_2:
 
         ; Executing - run the word
 _INTERP_4:
-        LDW Z, (interpret_is_lit)
-        CMP Z, $0
+        LDW A, (interpret_is_lit)
+        CMP A, $0
         JNE _INTERP_5           ; literal!
 
         ; Not a literal, execute it now. This never returns, but the word
         ; will eventually JMP next, which will reenter the loop in QUIT.
-        JMP (X)
+        JMP (Z)
 
         ; Executing a literal - push it on the stack
 _INTERP_5:
@@ -122,45 +113,74 @@ interpret_is_lit:
         .dict ">NUMBER"
 NUMBER: .word NUMBER_code
 NUMBER_code:
-        DPOP C                  ; length of string
-        DPOP N                  ; string address
+        DPOP Y                  ; length of string
+        DPOP X                  ; string address
         CALL _NUMBER
-        DPUSH A                 ; parsed number
-        DPUSH C                 ; number of unparsed chars (0 = no error)
+        DPUSH X                 ; parsed number
+        DPUSH Y                 ; number of unparsed chars (0 = no error)
         JMP next
 
-        ; Parse number; length in C, address in N
+        ; Parse number
+        ; input: X = string address, Y = length
+        ; output: Z = parsed number, Y = number of unparsed chars (0 = success)
 _NUMBER:
-        CMP C, $0               ; trying to parse a zero-length string is an error, but will return 0
+        CMP Y, $0               ; trying to parse a zero-length string is an error, but will return 0
         JEQ _NUMBER_5
 
-        LDW D, (var_BASE)
+        LDW I, X
+        LDW X, $0
+        LDW B, (var_BASE)
 
         ; Check if first char is '-'
-        LDB B, (N)
-        INC N
-        LDW Z, $0
-        DPUSH Z
-        CMP B, $'-'
+        LDB D, (I)
+        INC I
+        LDW A, $0
+        DPUSH A
+        CMP D, $'-'
         JNE _NUMBER_2
-        DPOP Z                  ; throw away
-        LDW Z, $1
-        DPUSH Z                 ; push <> 0 to indicate negative
-        DEC C                   ; decrement the length, as we consumed the '-'
-        CMP C, $0
-        JNE _NUMBER_1
-        DPOP Z                  ; error, string is only '-'
-        LDW C, $1
+        DPOP A                  ; throw away
+        LDW A, $1
+        DPUSH A                 ; push <> 0 to indicate negative
+        DEC Y                   ; decrement the length, as we consumed the '-'
+        CMP Y, $0
+        JNE _NUMBER_2           ; read the digits (note, Jonesforth jumped to _NUMBER_1)
+        DPOP A                  ; error, string is only '-'
+        LDW Y, $1
         RET
 
+        ; Loop reading digits
 _NUMBER_1:
-        MUL A, D                ; A *= BASE
-        ; TODO - HACK!
-        NOP
+        MUL X, B                ; A *= BASE
+        LDB D, (I)              ; get next char
+        INC I
 
+        ; Convert 0-9, A-Z to a number 0-35.
 _NUMBER_2:
-        ; TODO - HACK!
-        NOP
+        CMP D, $'0'             ; < '0'?
+        JLT _NUMBER_4
+        SUB D, $'0'
+        CMP D, $A               ; > '0'?
+        JLT _NUMBER_3           ; nope, was a digit - go process
+        CMP D, $11              ; > '0' but < 'A'?
+        JLT _NUMBER_4           ; yes, invalid
+        SUB D, $7
+
+_NUMBER_3:
+        CMP D, B                ; >= BASE?
+        JGE _NUMBER_4
+
+        ADD X, D                ; digit is okay, add it and loop
+        DEC Y
+        CMP Y, $0               ; at end of string?
+        JNE _NUMBER_1           ; not yet
+
+        ; Negate the result if first char was '-' (saved on stack)
+_NUMBER_4:
+        DPOP A
+        CMP A, $0
+        JEQ _NUMBER_5
+        ; TODO - implement NEG
+        ; NEG X
 
 _NUMBER_5:
         RET
@@ -170,17 +190,17 @@ _NUMBER_5:
         .dict ">BODY"
 TCFA:   .word TCFA_code
 TCFA_code:
-        DPOP X
+        DPOP Z
         CALL _TCFA
-        DPUSH X
+        DPUSH Z
         JMP next
 
-        ; Convert dict pointer in X to codeword pointer in X; klobbers M
-_TCFA:  ADD X, $2               ; skip link pointer
-        LDB M, (X)              ; load len+flags into M
-        INC X                   ; skip len+flags
+        ; Convert dict pointer in Z to codeword pointer in Z
+_TCFA:  ADD Z, $2               ; skip link pointer
+        LDB A, (Z)              ; load len+flags into M
+        INC Z                   ; skip len+flags
         ; TODO - mask the flags in M to get just the length
-        ADD X, M                ; skip the name
+        ADD Z, A                ; skip the name
         RET
 
 
@@ -280,9 +300,12 @@ FIND_code:
         DPOP Y                   ; word length
         DPOP X                   ; word address
         CALL _FIND
-        DPUSH X
+        DPUSH Z
         JMP next
 
+        ; Lookup word in dictionary
+        ; input: X = word address, Y = word length
+        ; output: Z = address of dict entry if found, or 0 if not found
 _FIND:
         LDW I, (var_LATEST)
 _FIND_1:
@@ -290,25 +313,25 @@ _FIND_1:
         JEQ _FIND_4             ; ...yup...
 
         ; Compare the lengths
-        LDW M, $2               ; get length address...
-        ADD M, I                ; ...into X
-        LDB N, (M)              ; get the length
-        CMP Y, N                ; do lengths match?
+        LDW A, $2               ; get length address...
+        ADD A, I                ; ...into X
+        LDB B, (A)              ; get the length
+        CMP Y, B                ; do lengths match?
         JNE _FIND_2             ; nope, try next dict entry
 
         ; Lengths match, check the string
         DPUSH X                 ; save the address
         DPUSH Y                 ; save the length
-        LDW Z, $3               ; point Z to the dict string...
-        ADD Z, I                ; ...we want to compare
+        LDW A, $3               ; point to the dict string...
+        ADD A, I                ; ...we want to compare
 _FIND_x:
-        LDB N, (X)              ; get the bytes...
-        LDB M, (Z)              ; ...to compare
-        CMP M, N
+        LDB C, (X)              ; get the bytes...
+        LDB D, (A)              ; ...to compare
+        CMP C, D
         JNE _FIND_3             ; strings do not match
 
         INC X                   ; inc word address
-        INC Z                   ; inc dict address
+        INC A                   ; inc dict address
         DEC Y                   ; dec length
         CMP Y, $0
         JNE _FIND_x             ; compare remaining chars
@@ -316,7 +339,7 @@ _FIND_x:
         ; Hey! We have a match!
         DPOP Y                  ; clean up the stack
         DPOP X
-        LDW X, I                ; return dict pointer
+        LDW Z, I                ; return dict pointer
         RET
 
         ; Current word is not a match; try prior link
@@ -332,7 +355,7 @@ _FIND_3:
 
         ; Not found
 _FIND_4:
-        LDW X, $0               ; return zero to indicate not found
+        LDW Z, $0               ; return zero to indicate not found
         RET
 
 ; --- WORD
@@ -347,7 +370,7 @@ WORD_code:
 _WORD:  
         ; Search for first non-blank character, skipping \ comments
         ; Returns length in Y and address in X
-        ; TODO - return length in C and address in N
+        ; Uses: I
 _WORD_1:
         CALL _KEY               ; get next key, returned in X
         CMP X, $'\'             ; is it the start of a comment?
@@ -355,16 +378,16 @@ _WORD_1:
         CMP X, $20              ; whitespace?
         JLE _WORD_1
 
-        LDW Z, word_buffer
+        LDW I, word_buffer
 _WORD_2:
-        STB X, (Z)
-        INC Z
+        STB X, (I)
+        INC I
         CALL _KEY
         CMP X, $20              ; space?
         JGT _WORD_2             ; nope, keep going
 
         ; Return the word (pointer to buffer) and length
-        LDW Y, Z
+        LDW Y, I
         SUB Y, word_buffer
         LDW X, word_buffer
         RET

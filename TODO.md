@@ -1,6 +1,7 @@
 ## TODO ##
 
 * Virtual Machine
+  * Implement NEG to finish `>NUMBER`
   * Implement bitwise opcodes: AND, OR, XOR, NOT
   * On reset, clear input buffers
   * Should arith operators (ADD, SUB, AND, etc) set the zero flag?
