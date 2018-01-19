@@ -3,7 +3,7 @@
 * Virtual Machine
   * Implement bitwise opcodes: AND, OR, XOR, NOT
   * On reset, clear input buffers
-  * Should arith operators (ADD, SUB, AND, etc) set the zero flag?
+  * Should arith/logic operators (ADD, SUB, AND, etc) set the zero flag?
   * Put data stack and return stack in memory
 * Forth
   * Implement `,` (comma)
@@ -18,6 +18,7 @@
   * Tie source code (via map file?) into debugger and show via `list`
   * Make aliases into aliases ("p" for "print") rather than defining the word multiple times
 * Assembler:
+  * Enhance `.word` so it can take multiple values (`.word FOO, BAR, $26`)
   * BUG: handle `CMP X, $' '`     (thinks the space is between args), also `.ascii "Two Words"`, which segfaults
   * Handle `CMP X, $'\n'`         (backslash escaping)
   * Improve literal handling: "$20" is hex 0x20, "20" is decimal

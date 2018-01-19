@@ -602,21 +602,25 @@ void execute_jump(Simulator *sim, unsigned char mode, bool (*condition)(Simulato
 }
 
 
-void print_stack_minion(StackNode *node)
+void print_stack_minion(char *buf, StackNode *node, unsigned short base)
 {
     if (node == NULL)
     {
         return;
     }
 
-    print_stack_minion(node->next);
+    print_stack_minion(buf, node->next, base);
 
-    fprintf(stdout, "%d ", (short) node->value);
+    my_itoa((short)node->value, buf, base);
+
+    fputs(buf, stdout);
+    fputc(' ', stdout);
 }
 
 
-void print_stack(Simulator *sim)
+void print_stack(Simulator *sim, unsigned short base)
 {
+    char buf[MAXCHAR];
     StackNode *top = sim->data_stack;
 
     if (top == NULL)
@@ -625,7 +629,7 @@ void print_stack(Simulator *sim)
         return;
     }
 
-    print_stack_minion(top);
+    print_stack_minion(buf, top, base);
 
     fputs("\n", stdout);
 }
@@ -766,7 +770,8 @@ void sim_step(Simulator *sim)
             break;
 
         case OP_PSTACK:   // TODO - a hack to quickly implement .S
-            print_stack(sim);
+            reg = sim->memory[sim->pc++];
+            print_stack(sim, get_register(sim, reg));
             break;
 
         case OP_CALL:
@@ -964,6 +969,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_INC:
         case OP_DEC:
         case OP_NEG:
+        case OP_PSTACK:
         case OP_PUTC:
         case OP_PUTS:
         case OP_ADD:
@@ -1109,6 +1115,8 @@ void sim_reset(Simulator *sim)
     sim->z = 0x0000;
     sim->flags = 0x0000;
     sim->halted = FALSE;
+    sim->stopped = FALSE;
+    sim->debugging = FALSE;
 
     while (sim->data_stack != NULL)
     {
