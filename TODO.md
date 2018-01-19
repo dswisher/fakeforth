@@ -1,12 +1,11 @@
 ## TODO ##
 
 * Virtual Machine
-  * Implement NEG to finish `>NUMBER`
   * Implement bitwise opcodes: AND, OR, XOR, NOT
   * On reset, clear input buffers
   * Should arith operators (ADD, SUB, AND, etc) set the zero flag?
+  * Put data stack and return stack in memory
 * Forth
-  * Implement `>NUMBER` (`NUMBER` in JonesForth?)
   * Implement `,` (comma)
   * Implement `INTERPRET`
 * Debugger:
@@ -32,6 +31,7 @@
 ## DONE ##
 
 * Virtual Machine
+  * ~~Implement NEG to finish `>NUMBER`~~
   * ~~Implement MUL~~
   * ~~Remove STOS hack and redo load and store opcodes to have both a word flavor and a byte flavor~~
   * ~~Implement SUB opcode~~
@@ -42,6 +42,8 @@
   * ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~
   * ~~Get rid of GO and replace with JMP with proper address modes~~
 * Forth
+  * ~~Implement placeholder `.S` for testing~~
+  * ~~Implement `>NUMBER` (`NUMBER` in JonesForth?)~~
   * ~~Implement `FIND`~~
   * ~~Implement `WORD`~~
   * ~~Change sample to do 2DUP, which calls DUP, to see if nesting works~~

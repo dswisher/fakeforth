@@ -143,7 +143,7 @@ _NUMBER:
         DPUSH A                 ; push <> 0 to indicate negative
         DEC Y                   ; decrement the length, as we consumed the '-'
         CMP Y, $0
-        JNE _NUMBER_2           ; read the digits (note, Jonesforth jumped to _NUMBER_1)
+        JNE _NUMBER_1           ; read the digits
         DPOP A                  ; error, string is only '-'
         LDW Y, $1
         RET
@@ -179,8 +179,7 @@ _NUMBER_4:
         DPOP A
         CMP A, $0
         JEQ _NUMBER_5
-        ; TODO - implement NEG
-        ; NEG X
+        NEG X
 
 _NUMBER_5:
         RET
@@ -249,6 +248,13 @@ LIT_code:
         DPUSH X
         JMP next
 
+
+; -- DOT-S (hack version for debugging) - TODO - replace this with a real version
+        .dict ".S"
+DOTS:   .word DOTS_code
+DOTS_code:
+        PSTACK
+        JMP next
 
 ; -- STORE
         .dict "!"

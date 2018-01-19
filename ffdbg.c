@@ -228,7 +228,7 @@ bool execute_command(Context *context)
         {
             free(last_line);
         }
-        last_line = strdup(buf);
+        last_line = my_strdup(buf);
     }
     free(line);
 #else

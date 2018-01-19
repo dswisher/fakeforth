@@ -13,7 +13,8 @@
 #define OP_RPOP     OPCODE(6)
 #define OP_INC      OPCODE(7)
 #define OP_DEC      OPCODE(8)
-// TODO - gap
+#define OP_NEG      OPCODE(9)
+#define OP_PSTACK   OPCODE(10)
 #define OP_GETC     OPCODE(11)
 #define OP_PUTC     OPCODE(12)
 #define OP_ADD      OPCODE(13)

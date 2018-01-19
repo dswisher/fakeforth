@@ -39,8 +39,10 @@ ArgCount arg_counts[] =
     { OP_RPOP, 1 },
     { OP_INC, 1 },
     { OP_DEC, 1 },
+    { OP_NEG, 1 },
     { OP_GETC, 1 },
     { OP_PUTC, 1 },
+    { OP_PSTACK, 0 },
     { OP_ADD, 2 },
     { OP_MUL, 2 },
     { OP_SUB, 2 },
@@ -606,6 +608,7 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_RPOP:
         case OP_INC:
         case OP_DEC:
+        case OP_NEG:
         case OP_GETC:
         case OP_PUTC:
         case OP_ADD:

@@ -596,6 +596,35 @@ void execute_jump(Simulator *sim, unsigned char mode, bool (*condition)(Simulato
 }
 
 
+void print_stack_minion(StackNode *node)
+{
+    if (node == NULL)
+    {
+        return;
+    }
+
+    print_stack_minion(node->next);
+
+    fprintf(stdout, "%d ", (short) node->value);
+}
+
+
+void print_stack(Simulator *sim)
+{
+    StackNode *top = sim->data_stack;
+
+    if (top == NULL)
+    {
+        fputs("[empty]\n", stdout);
+        return;
+    }
+
+    print_stack_minion(top);
+
+    fputs("\n", stdout);
+}
+
+
 void sim_step(Simulator *sim)
 {
     if (sim->halted)
@@ -708,6 +737,11 @@ void sim_step(Simulator *sim)
             set_register(sim, reg, get_register(sim, reg) - 1);
             break;
 
+        case OP_NEG:
+            reg = sim->memory[sim->pc++];
+            set_register(sim, reg, - get_register(sim, reg));
+            break;
+
         case OP_GETC:
             reg = sim->memory[sim->pc++];
             set_register(sim, reg, fgetc(stdin));
@@ -716,6 +750,10 @@ void sim_step(Simulator *sim)
         case OP_PUTC:
             reg = sim->memory[sim->pc++];
             fputc(get_register(sim, reg), stdout);
+            break;
+
+        case OP_PSTACK:   // TODO - a hack to quickly implement .S
+            print_stack(sim);
             break;
 
         case OP_CALL:
@@ -886,6 +924,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_RPOP:
         case OP_INC:
         case OP_DEC:
+        case OP_NEG:
         case OP_PUTC:
         case OP_ADD:
         case OP_MUL:
@@ -1014,6 +1053,7 @@ void sim_toggle_breakpoint(Simulator *sim, unsigned short addr)
 void sim_reset(Simulator *sim)
 {
     sim->pc = 0x0000;
+    sim->last_pc = sim->pc;
     sim->ip = 0x0000;
     sim->ca = 0x0000;
     sim->a = 0x0000;
