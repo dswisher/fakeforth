@@ -18,8 +18,8 @@
   * Tie source code (via map file?) into debugger and show via `list`
   * Make aliases into aliases ("p" for "print") rather than defining the word multiple times
 * Assembler:
-  * BUG: handle CMP X, $' '     (thinks the space is between args)
-  * Handle CMP X, $'\n'         (backslash escaping)
+  * BUG: handle `CMP X, $' '`     (thinks the space is between args), also `.ascii "Two Words"`, which segfaults
+  * Handle `CMP X, $'\n'`         (backslash escaping)
   * Improve literal handling: "$20" is hex 0x20, "20" is decimal
   * Implement local labels (`1:`, then `1f` and/or `1b`)
   * Add psuedo ops to move between data and code areas
@@ -31,6 +31,8 @@
 ## DONE ##
 
 * Virtual Machine
+  * ~~Implement BRK to drop out to debugger~~
+  * ~~Implement DCLR and RCLR to clear stacks~~
   * ~~Implement NEG to finish `>NUMBER`~~
   * ~~Implement MUL~~
   * ~~Remove STOS hack and redo load and store opcodes to have both a word flavor and a byte flavor~~
@@ -70,6 +72,7 @@
   * ~~implement disassembly (list) command~~
   * ~~clean up command handling (use a lookup table or some such)~~
 * Assembler:
+  * ~~Add .asciz to embed null-terminated strings~~
   * ~~Write pseudo to create Forth dictionary header~~
   * ~~Write symbols to a file~~
   * ~~If a label is undefined, issue an error~~

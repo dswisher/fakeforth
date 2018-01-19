@@ -42,7 +42,11 @@ ArgCount arg_counts[] =
     { OP_NEG, 1 },
     { OP_GETC, 1 },
     { OP_PUTC, 1 },
+    { OP_PUTS, 1 },
     { OP_PSTACK, 0 },
+    { OP_DCLR, 0 },
+    { OP_RCLR, 0 },
+    { OP_BRK, 0 },
     { OP_ADD, 2 },
     { OP_MUL, 2 },
     { OP_SUB, 2 },
@@ -322,6 +326,13 @@ bool parse_pseudo(Context *context, int argc, char *argv[])
     if (!strcmp(argv[0], ".ascii"))
     {
         add_string(context, strip_quotes(argv[1]));
+        return TRUE;
+    }
+
+    if (!strcmp(argv[0], ".asciz"))
+    {
+        add_string(context, strip_quotes(argv[1]));
+        add_byte(context, 0);
         return TRUE;
     }
 
@@ -611,6 +622,7 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_NEG:
         case OP_GETC:
         case OP_PUTC:
+        case OP_PUTS:
         case OP_ADD:
         case OP_MUL:
         case OP_SUB:

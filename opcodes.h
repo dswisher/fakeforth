@@ -33,6 +33,10 @@
 #define OP_LDB      OPCODE(26)
 #define OP_STW      OPCODE(27)
 #define OP_STB      OPCODE(28)
+#define OP_BRK      OPCODE(29)
+#define OP_PUTS     OPCODE(30)
+#define OP_DCLR     OPCODE(31)
+#define OP_RCLR     OPCODE(32)
 
 #define OP_HLT      OPCODE(63)
 

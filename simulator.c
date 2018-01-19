@@ -74,6 +74,12 @@ void sim_run(Simulator *sim)
     {
         sim_step(sim);
 
+        if (sim->stopped)
+        {
+            sim->stopped = FALSE;
+            return;
+        }
+
         for (int i = 0; i < sim->num_breakpoints; i++)
         {
             if (sim->breakpoints[i] == sim->pc)
@@ -752,6 +758,13 @@ void sim_step(Simulator *sim)
             fputc(get_register(sim, reg), stdout);
             break;
 
+        case OP_PUTS:
+            reg = sim->memory[sim->pc++];
+            addr = get_register(sim, reg);
+            fputs((char *)(sim->memory + addr), stdout);
+            // fputs(&(sim->memory[get_register(sim, reg)]), stdout);
+            break;
+
         case OP_PSTACK:   // TODO - a hack to quickly implement .S
             print_stack(sim);
             break;
@@ -764,6 +777,32 @@ void sim_step(Simulator *sim)
 
         case OP_RET:
             sim->pc = pop_call(sim);
+            break;
+
+        case OP_DCLR:
+            while (sim->data_stack != NULL)
+            {
+                pop_data(sim);
+            }
+            break;
+
+        case OP_RCLR:
+            while (sim->return_stack != NULL)
+            {
+                pop_return(sim);
+            }
+            break;
+
+        case OP_BRK:
+            printf("BRK at 0x%04X\n", sim->last_pc);
+            if (sim->debugging)
+            {
+                sim->stopped = TRUE;
+            }
+            else
+            {
+                sim->halted = TRUE;
+            }
             break;
 
         default:
@@ -926,6 +965,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_DEC:
         case OP_NEG:
         case OP_PUTC:
+        case OP_PUTS:
         case OP_ADD:
         case OP_MUL:
         case OP_SUB:

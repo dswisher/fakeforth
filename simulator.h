@@ -47,7 +47,9 @@ typedef struct Simulator
     StackNode *call_stack;
 
     // Simulation state
-    bool halted;
+    bool halted;    // hit HLT or error
+    bool stopped;   // hit BRK
+    bool debugging; // TRUE if running in debugger
 
     // Set of addresses that have breakpoints set
     int num_breakpoints;

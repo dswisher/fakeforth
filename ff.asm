@@ -37,14 +37,51 @@ cold_start:                     ; colon-word w/o a header or codeword
         .word QUIT
 
 
+; --- DROP - drop top of stack
+        .dict "DROP"
+DROP:   .word DROP_code
+DROP_code:
+        DPOP A                  ; throw away
+        CALL next
+
+
+; --- SWAP - swap top two elements of stack
+        .dict "SWAP"
+SWAP:   .word SWAP_code
+SWAP_code:
+        DPOP A
+        DPOP B
+        DPUSH A
+        DPUSH B
+        CALL next
+
+
+; --- DUP
+        .dict "DUP"
+DUP:    .word DUP_code
+DUP_code:
+        DPOP A
+        DPUSH A
+        DPUSH A
+        JMP next
+
+
 ; --- QUIT
         .dict "QUIT"
 QUIT:   .word DOCOL             ; codeword - the interpreter
-        ; TODO - clear the return stack
-        ; TODO - clear the data stack?
+        .word CSTACK
         .word INTERPRET
         .word BRANCH
         .word $-4
+
+
+; --- Clear hack
+
+CSTACK: .word CSTACK_code
+CSTACK_code:
+        ; DCLR                    ; clear data stack?
+        RCLR                    ; clear return stack
+        JMP next
 
 
 ; --- INTERPRET
@@ -102,11 +139,18 @@ _INTERP_5:
         
         ; Parse error (not a known word or valid number). Print error message and perhaps some context.
 _INTERP_6:
-        ; TODO
-        HLT
+        ; TODO - include some context in the message
+        LDW A, error_message
+        PUTS A
+        LDW A, $A               ; newline
+        PUTC A
+        JMP next
 
 interpret_is_lit:
         .word $0                ; flag used to record if reading a literal
+
+error_message:
+        .asciz "PARSE-ERROR"    ; TODO - remove the dash - bug in assembler w.r.t. spaces in strings
 
 
 ; --- >NUMBER  (NUMBER in JonesForth)
@@ -211,24 +255,6 @@ BRANCH_code:
         JMP next
 
 
-; --- DUP
-        .dict "DUP"
-DUP:    .word DUP_code
-DUP_code:
-        DPOP X                  ; get data item currently on top of stack
-        DPUSH X                 ; and push it...
-        DPUSH X                 ; ...twice
-        JMP next
-
-
-; --- 2DUP - testing - TODO - this is NOT the correct, standard definition!
-        .dict "2DUP"
-TDUP:   .word DOCOL             ; codeword - the interpreter
-        .word DUP
-        .word DUP
-        .word EXIT
-
-
 ; --- EXIT - tacked onto end of all high-level words
         .dict "EXIT"
 EXIT:   .word EXIT_code
@@ -251,10 +277,18 @@ LIT_code:
 
 ; -- DOT-S (hack version for debugging) - TODO - replace this with a real version
         .dict ".S"
-DOTS:   .word DOTS_code
+        .word DOTS_code
 DOTS_code:
         PSTACK
         JMP next
+
+
+; -- BREAK (hack for debugging) - break into debugger
+        .dict "BREAK"
+        .word BREAK_code
+BREAK_code:
+        BRK
+
 
 ; -- STORE
         .dict "!"
@@ -413,7 +447,6 @@ word_buffer:
 
 ; TODO - STATE
 ; TODO - HERE
-; TODO - BASE
 
         .dict "LATEST"
 LATEST: .word LATEST_code       ; codeword
@@ -425,8 +458,6 @@ LATEST_code:
 ; ------------------
 ; Data, buffers, etc.
 ; ------------------
-
-_dad:   .word $DAD              ; TODO - remove this
 
 var_BASE:
         .word $A

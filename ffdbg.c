@@ -623,6 +623,7 @@ void dc_toggle_breakpoint(Context *context)
 void dc_reset(Context *context)
 {
     sim_reset(context->sim);
+    context->sim->debugging = TRUE;
 }
 
 
@@ -751,6 +752,7 @@ int main(int argc, char *argv[])
 #endif
 
     Simulator *sim = sim_init(options->infile);
+    sim->debugging = TRUE;
     sim_load_symbols(sim, options->symfile);
 
     Context *context = create_context(sim);
