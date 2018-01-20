@@ -473,11 +473,54 @@ _TCFA:  ADD Z, $2               ; skip link pointer
 ; Compiling
 ; -------------------------------------------------------------------
 
-; TODO - CREATE
-; TODO - ,
+; --- CREATE
+        .dict "CREATE"
+CREATE: .word CREATE_code
+CREATE_code:
+        DPOP C                  ; get word length
+        DPOP B                  ; get word address
+         LDW I, (var_HERE)       ; get the address where we'll be writing things
+         LDW A, (var_LATEST)     ; get pointer to prev word
+         STW A, (I)              ; add link
+         ADD I, $2               ; bump address
+         STB C, (I)              ; save the length
+         INC I                   ; bump address
+
+        ; TODO - CREATE
+
+        JMP next
+
+
+; --- COMMA (,)
+        .dict ","
+COMMA:  .word COMMA_code
+COMMA_code:
+        DPOP X                  ; data to store
+        CALL _COMMA
+        JMP next
+_COMMA: LDW I, (var_HERE)       ; add word in X to dict entry
+        STW X, (I)
+        ADD I, $2
+        STW I, (var_HERE)
+        RET
+
+
 ; TODO - [
 ; TODO - ]
-; TODO - :
+
+
+; --- COLON (:)
+        .dict ":"
+COLON:  .word DOCOL
+        .word WORD
+        .word CREATE
+        .word LIT
+        .word DOCOL
+        .word COMMA
+        ; TODO - finish COLON
+        .word EXIT
+
+
 ; TODO - ;
 
 
@@ -666,7 +709,7 @@ interpret_is_lit:
         .word $0                ; flag used to record if reading a literal
 
 error_message:
-        .asciz "PARSE-ERROR"    ; TODO - remove the dash - bug in assembler w.r.t. spaces in strings
+        .asciz "PARSE ERROR"
 
 var_STATE:
         .word $0

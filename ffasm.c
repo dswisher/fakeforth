@@ -11,8 +11,6 @@
 #include "util.h"
 
 
-#define SEPS " \t,"
-
 
 typedef struct ArgCount
 {
@@ -290,16 +288,6 @@ void add_string(Context *context, char *str)
 }
 
 
-char *strip_quotes(char *s)
-{
-    static char buf[MAXCHAR];
-    strcpy(buf, s + 1);
-    char *pos = strrchr(buf, '"');
-    *pos = 0;
-    return buf;
-}
-
-
 bool parse_pseudo(Context *context, int argc, char *argv[])
 {
     if (!strcmp(argv[0], ".word"))
@@ -325,13 +313,13 @@ bool parse_pseudo(Context *context, int argc, char *argv[])
 
     if (!strcmp(argv[0], ".ascii"))
     {
-        add_string(context, strip_quotes(argv[1]));
+        add_string(context, argv[1]);
         return TRUE;
     }
 
     if (!strcmp(argv[0], ".asciz"))
     {
-        add_string(context, strip_quotes(argv[1]));
+        add_string(context, argv[1]);
         add_byte(context, 0);
         return TRUE;
     }
@@ -345,20 +333,11 @@ bool parse_pseudo(Context *context, int argc, char *argv[])
 
     if (!strcmp(argv[0], ".dict"))
     {
-        char *name = strip_quotes(argv[1]);
+        char *name = argv[1];
         unsigned char len = strlen(name);
 
         // Save the current addr
         unsigned short addr = context->origin;
-
-        // Build a symbol to point to the dict entry
-        char sym[MAXCHAR];
-        strcpy(sym, name);
-        strcat(sym, "_word");
-
-        // TODO - strip special symbols
-        Symbol *symbol = add_symbol(context, sym);
-        symbol->location = context->origin;
 
         // Set up the entry
         add_word(context, context->last_dict);  // pointer to prev word
@@ -509,18 +488,65 @@ bool add_by_mode(Context *context, int mode, char *arg)
 }
 
 
+void split_params(char *str, char *argv[], int *argc)
+{
+    static char buf[MAXCHAR];
+
+    strcpy(buf, str);
+    *argc = 0;
+    char *c = buf;
+    while (TRUE)
+    {
+        // Skip whitespace
+        while (*c == ' ' || *c == '\t' || *c == ',')
+        {
+            c++;
+        }
+
+        // Stop if we're out of string
+        if (*c == 0)
+        {
+            return;
+        }
+
+        // Parse an argument, possibly quoted
+        if (*c == '"')
+        {
+            c++;
+            argv[(*argc)++] = c;
+            while (*c != '"' && *c != 0)
+            {
+                c++;
+            }
+            if (*c != 0)
+            {
+                *c = 0;
+                c++;
+            }
+        }
+        else
+        {
+            argv[(*argc)++] = c;
+            while (*c != ' ' && *c != '\t' && *c != ',' && *c != 0)
+            {
+                c++;
+            }
+            if (*c != 0)
+            {
+                *c = 0;     // terminate
+                c++;
+            }
+        }
+    }
+}
+
+
 bool parse_opcode(Context *context, char *opcode)
 {
-    char buf[MAXCHAR];
     char *argv[MAXARGS];
     int argc = 0;
-    strcpy(buf, opcode);
-    char *token = strtok(buf, SEPS);
-    while(token)
-    {
-        argv[argc++] = token;
-        token = strtok(NULL, SEPS);
-    }
+
+    split_params(opcode, argv, &argc);
 
     if (argc == 0)
     {

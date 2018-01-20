@@ -598,7 +598,6 @@ void dc_find(Context *context)
             if (!strcmp(buf, name))
             {
                 do_push(context, addr);
-                printf("%s found at 0x%04d (pushed).\n", name, addr);
                 return;
             }
         }
@@ -609,7 +608,6 @@ void dc_find(Context *context)
 
     // No match at all!
     printf("Not found.\n");
-    do_push(context, 0);
 }
 
 
@@ -661,6 +659,15 @@ void dc_dict(Context *context)
     strcpy(name, read_dict_string(sim, addr + 2));
 
     char code[MAXCHAR];
+    sprintf(code, "0x%04X", codeAddr);
+    char *sym = sim_reverse_lookup_symbol(sim, codeAddr);
+    if (sym != NULL)
+    {
+        strcat(code, " ");
+        strcat(code, sym);
+    }
+
+    /*
     unsigned short docolAddr;
     sim_lookup_symbol(context->sim, "DOCOL", &docolAddr);
     if (codeAddr == docolAddr)
@@ -671,10 +678,43 @@ void dc_dict(Context *context)
     {
         sprintf(code, "0x%04X", codeAddr);
     }
+    */
 
-    printf("         +--------+----+-----------------+--------+\n");
-    printf(" 0x%04X: | 0x%04X | %2d | %-15.15s | %6s |\n", addr, prev, len, name, code);
-    printf("         +--------+----+-----------------+--------+\n");
+    printf("         +--------+----+-----------------+----------------------+\n");
+    printf(" 0x%04X: | 0x%04X | %2d | %-15.15s | %-20.20s |\n", addr, prev, len, name, code);
+    printf("         +--------+----+-----------------+----------------------+\n");
+
+    unsigned short docolAddr;
+    unsigned short exitAddr;
+    unsigned short branchAddr;      // TODO - copout - for now, stop on BRANCH
+    sim_lookup_symbol(context->sim, "DOCOL", &docolAddr);
+    sim_lookup_symbol(context->sim, "EXIT", &exitAddr);
+    sim_lookup_symbol(context->sim, "BRANCH", &branchAddr);
+    if (codeAddr == docolAddr)
+    {
+        addr += 3 + len + 2;
+        for (int i = 0; i < 10; i++, addr += 2)
+        {
+            codeAddr = sim_read_word(sim, addr);
+
+            sprintf(code, "0x%04X", codeAddr);
+            sym = sim_reverse_lookup_symbol(sim, codeAddr);
+            if (sym != NULL)
+            {
+                strcat(code, " ");
+                strcat(code, sym);
+            }
+
+            printf("                                 0x%04X: | %-20.20s |\n", addr, code);
+
+            if (codeAddr == exitAddr || codeAddr == branchAddr)
+            {
+                break;
+            }
+        }
+
+        printf("                                         +----------------------+\n");
+    }
 }
 
 
