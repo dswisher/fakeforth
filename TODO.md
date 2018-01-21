@@ -9,6 +9,7 @@
   * Implement `,` (comma)
   * Implement `INTERPRET`
 * Debugger:
+  * Implement step-over (execute `CALL` and stop on next line)
   * Implement tracepoints (print summary state when line is hit)
   * Show ascii character(s) next to registers, perhaps disassembly (CMP X, 0x005C  .\)
   * Change `pc` and similar commands to just push an "address" on the stack, then implement `@` and `!` so we can update registers

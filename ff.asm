@@ -63,6 +63,7 @@ DUP_code:
         DPUSH A
         JMP next
 
+
 ; TODO - OVER
 ; TODO - ROT
 ; TODO - -ROT
@@ -590,6 +591,8 @@ INTERPRET_code:
         ; TODO - test for immediate by checking flags, and jump if it is
         CALL _TCFA              ; takes dict pointer in Z and returns codeword address in Z
 
+        LDW CA, Z
+
         JMP _INTERP_2           ; not immediate
 
         ; Not in the dictionary; assume a literal number
@@ -690,9 +693,10 @@ DOTS_code:
 
 ; -- BREAK (hack for debugging) - break into debugger
         .dict "BREAK"
-        .word BREAK_code
+BREAK:  .word BREAK_code
 BREAK_code:
         BRK
+        JMP next
 
 
 
