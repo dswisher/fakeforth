@@ -480,14 +480,28 @@ CREATE: .word CREATE_code
 CREATE_code:
         DPOP C                  ; get word length
         DPOP B                  ; get word address
-         LDW I, (var_HERE)       ; get the address where we'll be writing things
-         LDW A, (var_LATEST)     ; get pointer to prev word
-         STW A, (I)              ; add link
-         ADD I, $2               ; bump address
-         STB C, (I)              ; save the length
-         INC I                   ; bump address
+        LDW I, (var_HERE)       ; get the address where we'll be writing things
+        LDW J, I                ; save current point
+        LDW A, (var_LATEST)     ; get pointer to prev word
+        STW A, (I)              ; add link
+        ADD I, $2               ; bump address
+        STB C, (I)              ; save the length
+        INC I                   ; bump address
 
-        ; TODO - CREATE
+        ; Copy the word itself
+_CREATE_1:
+        LDB D, (B)
+        STB D, (I)
+        INC I
+        INC B
+        DEC C
+        CMP C, $0
+        JNE _CREATE_1
+
+        ; update LATEST and HERE
+_CREATE_2:
+        STW J, (var_LATEST)
+        STW I, (var_HERE)
 
         JMP next
 
@@ -686,8 +700,18 @@ CSTACK_code:
         .dict ".S"
         .word DOTS_code
 DOTS_code:
-        LDW A, (var_BASE)
-        PSTACK A
+        PSTACK
+        JMP next
+
+
+; -- DOT (hack version for debugging) - TODO - replace this with a real version
+        .dict "."
+        .word DOT_code
+DOT_code:
+        DPOP A
+        PUTN A
+        LDW A, $A               ; CR
+        PUTC A
         JMP next
 
 

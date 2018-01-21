@@ -602,6 +602,14 @@ void execute_jump(Simulator *sim, unsigned char mode, bool (*condition)(Simulato
 }
 
 
+unsigned short get_base(Simulator *sim)
+{
+    unsigned short addr;
+    sim_lookup_symbol(sim, "var_BASE", &addr);
+    return sim_read_word(sim, addr);
+}
+
+
 void print_stack_minion(char *buf, StackNode *node, unsigned short base)
 {
     if (node == NULL)
@@ -618,8 +626,9 @@ void print_stack_minion(char *buf, StackNode *node, unsigned short base)
 }
 
 
-void print_stack(Simulator *sim, unsigned short base)
+void print_stack(Simulator *sim)
 {
+    // Print the stack
     char buf[MAXCHAR];
     StackNode *top = sim->data_stack;
 
@@ -629,9 +638,18 @@ void print_stack(Simulator *sim, unsigned short base)
         return;
     }
 
-    print_stack_minion(buf, top, base);
+    print_stack_minion(buf, top, get_base(sim));
 
     fputs("\n", stdout);
+}
+
+
+void print_number(Simulator *sim, short num)
+{
+    char buf[MAXCHAR];
+    unsigned short base = get_base(sim);
+    my_itoa(num, buf, base);
+    fputs(buf, stdout);
 }
 
 
@@ -766,12 +784,15 @@ void sim_step(Simulator *sim)
             reg = sim->memory[sim->pc++];
             addr = get_register(sim, reg);
             fputs((char *)(sim->memory + addr), stdout);
-            // fputs(&(sim->memory[get_register(sim, reg)]), stdout);
             break;
 
-        case OP_PSTACK:   // TODO - a hack to quickly implement .S
+        case OP_PUTN:       // TODO - a bit of a hack
             reg = sim->memory[sim->pc++];
-            print_stack(sim, get_register(sim, reg));
+            print_number(sim, get_register(sim, reg));
+            break;
+
+        case OP_PSTACK:     // TODO - a hack to quickly implement .S
+            print_stack(sim);
             break;
 
         case OP_CALL:

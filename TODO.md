@@ -1,6 +1,8 @@
 ## TODO ##
 
+* BUG: `BRANCH` is not working correctly, as `ADD IP, (IP)` where `(IP)` is `$-8` is going forward, not back
 * Virtual Machine
+  * Rather than implementing PUTC, PSTACK, PUTN, GETC, etc., use syscall-type mechanism
   * Implement bitwise opcodes: AND, OR, XOR, NOT
   * On reset, clear input buffers
   * Should arith/logic operators (ADD, SUB, AND, etc) set the zero flag?
@@ -9,6 +11,7 @@
   * Implement `,` (comma)
   * Implement `INTERPRET`
 * Debugger:
+  * Implement word to list breakpoints
   * Implement step-over (execute `CALL` and stop on next line)
   * Implement tracepoints (print summary state when line is hit)
   * Show ascii character(s) next to registers, perhaps disassembly (CMP X, 0x005C  .\)

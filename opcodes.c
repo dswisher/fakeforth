@@ -29,6 +29,7 @@ NameMap name_map[] =
     { "NEG", OP_NEG },
     { "GETC", OP_GETC },
     { "PUTC", OP_PUTC },
+    { "PUTN", OP_PUTN },
     { "PUTS", OP_PUTS },
     { "PSTACK", OP_PSTACK },
     { "ADD", OP_ADD },

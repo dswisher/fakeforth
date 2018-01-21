@@ -37,6 +37,7 @@
 #define OP_PUTS     OPCODE(30)
 #define OP_DCLR     OPCODE(31)
 #define OP_RCLR     OPCODE(32)
+#define OP_PUTN     OPCODE(33)
 
 #define OP_HLT      OPCODE(63)
 

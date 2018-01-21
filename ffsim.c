@@ -39,6 +39,13 @@ Options *parse_args(int argc, char *argv[])
         options->infile = argv[1];
     }
 
+    strcpy(scratch, options->infile);
+    dot = strrchr(scratch, '.');
+    *dot = 0;
+
+    strcat(scratch, ".sym");
+    options->symfile = my_strdup(scratch);
+
     return options;
 }
 
@@ -53,6 +60,7 @@ int main(int argc, char *argv[])
     }
 
     Simulator *sim = sim_init(options->infile);
+    sim_load_symbols(sim, options->symfile);
 
     sim_run(sim);
 
