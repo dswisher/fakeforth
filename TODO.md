@@ -7,8 +7,12 @@
   * Should arith/logic operators (ADD, SUB, AND, etc) set the zero flag?
   * Put data stack and return stack in memory
 * Forth
+  * Implement IMMEDIATE and HIDDEN flags!
   * Change hacky DOT and SDOT to pass the BASE to eliminate dependence on symbols
+  * Implement `HIDDEN` (which requires flags on length byte)
   * Implement `,` (comma)
+  * Implement `:` (colon)
+  * Implement `;` (semi-colon)
   * Implement `INTERPRET`
 * Debugger:
   * Add sentinal words before and after dictionary definitions and enhance `dict` command to search for these to align
@@ -24,6 +28,7 @@
   * Tie source code (via map file?) into debugger and show via `list`
   * Make aliases into aliases ("p" for "print") rather than defining the word multiple times
 * Assembler:
+  * BUG: ignore semi-colon inside string so `.dict ";"` will work!
   * Enhance `.word` so it can take multiple values (`.word FOO, BAR, $26`)
   * BUG: handle `CMP X, $' '`     (thinks the space is between args), also `.ascii "Two Words"`, which segfaults
   * Handle `CMP X, $'\n'`         (backslash escaping)

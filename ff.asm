@@ -520,8 +520,22 @@ _COMMA: LDW I, (var_HERE)       ; add word in X to dict entry
         RET
 
 
-; TODO - [
-; TODO - ]
+; --- LBRAC ([)
+        .dict "["               ; TODO - needs IMMEDIATE flag!!!
+LBRAC:  .word LBRAC_code
+LBRAC_code:
+        LDW A, $0
+        STW A, (var_STATE)      ; set STATE to zero (immediate mode)
+        JMP next
+
+
+; --- RBRAC (])
+        .dict "]"
+RBRAC:  .word RBRAC_code
+RBRAC_code:
+        LDW A, $1
+        STW A, (var_STATE)      ; set STATE to one (compile mode)
+        JMP next
 
 
 ; --- COLON (:)
@@ -532,11 +546,25 @@ COLON:  .word DOCOL
         .word LIT
         .word DOCOL
         .word COMMA
-        ; TODO - finish COLON
+        .word LATEST
+        .word FETCH
+        .word HIDDEN            ; make the word hidden until the definition is finished
+        .word RBRAC             ; go into compile mode
         .word EXIT
 
 
-; TODO - ;
+; --- SEMICOLON (;)
+        .dict ";"               ; TODO - need IMMEDIATE flag!!!
+SEMICOLON:
+        .word DOCOL
+        .word LIT
+        .word EXIT
+        .word COMMA             ; append EXIT (so the word will return)
+        .word LATEST
+        .word FETCH
+        .word HIDDEN            ; unhide the word
+        .word LBRAC             ; to into immediate mode
+        .word EXIT
 
 
 ; -------------------------------------------------------------------
@@ -544,7 +572,16 @@ COLON:  .word DOCOL
 ; -------------------------------------------------------------------
 
 ; TODO - IMMEDIATE
-; TODO - HIDDEN
+
+; --- HIDDEN
+        .dict "HIDDEN"
+HIDDEN: .word HIDDEN_code
+HIDDEN_code:
+        DPOP A              ; TODO - HACK - just drop the address for now
+        ; TODO - implement HIDDEN!
+        JMP next
+
+
 ; TODO - `  (tick)
 
 
