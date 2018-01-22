@@ -583,7 +583,7 @@ QUIT:   .word DOCOL             ; codeword - the interpreter
         .word CSTACK
         .word INTERPRET
         .word BRANCH
-        .word $-8
+        .word $-6
 
 
 ; --- INTERPRET

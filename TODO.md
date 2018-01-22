@@ -1,6 +1,5 @@
 ## TODO ##
 
-* BUG: `BRANCH` is not working correctly, as `ADD IP, (IP)` where `(IP)` is `$-8` is going forward, not back
 * Virtual Machine
   * Rather than implementing PUTC, PSTACK, PUTN, GETC, etc., use syscall-type mechanism
   * Implement bitwise opcodes: AND, OR, XOR, NOT
@@ -8,9 +7,12 @@
   * Should arith/logic operators (ADD, SUB, AND, etc) set the zero flag?
   * Put data stack and return stack in memory
 * Forth
+  * Change hacky DOT and SDOT to pass the BASE to eliminate dependence on symbols
   * Implement `,` (comma)
   * Implement `INTERPRET`
 * Debugger:
+  * Add sentinal words before and after dictionary definitions and enhance `dict` command to search for these to align
+  * In `print`, for CA and IP, show word+offset, such as `QUIT+2`
   * Implement word to list breakpoints
   * Implement step-over (execute `CALL` and stop on next line)
   * Implement tracepoints (print summary state when line is hit)
@@ -35,6 +37,7 @@
 
 ## DONE ##
 
+* ~~BUG: `BRANCH` is not working correctly, as `ADD IP, (IP)` where `(IP)` is `$-8` is going forward, not back~~
 * Virtual Machine
   * ~~Implement BRK to drop out to debugger~~
   * ~~Implement DCLR and RCLR to clear stacks~~

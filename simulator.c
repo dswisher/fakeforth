@@ -467,7 +467,6 @@ void execute_arithmetic(Simulator *sim, unsigned char mode, unsigned short (*ope
         case ADDR_MODE2:    // ADD a, (b)
             reg1 = sim->memory[sim->pc++];
             reg2 = sim->memory[sim->pc++];
-            set_register(sim, reg1, get_register(sim, reg1) + sim_read_word(sim, get_register(sim, reg2)));
             result = operation(get_register(sim, reg1), sim_read_word(sim, get_register(sim, reg2)));
             break;
 
