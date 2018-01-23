@@ -38,6 +38,9 @@
 #define OP_DCLR     OPCODE(31)
 #define OP_RCLR     OPCODE(32)
 #define OP_PUTN     OPCODE(33)
+#define OP_AND      OPCODE(34)
+#define OP_OR       OPCODE(35)
+#define OP_XOR      OPCODE(36)
 
 #define OP_HLT      OPCODE(63)
 

@@ -1,4 +1,11 @@
 
+; TODO - set initial origin to something other than zero
+
+        .set F_IMMED, $80
+        .set F_HIDDEN, $20
+        .set F_LENMASK, $1F     ; mask to get just the length (low order bits)
+        .set F_LENHIDMASK, $3F  ; F_LENMASK | F_HIDDEN
+
 _start:
         LDW IP, cold_start      ; set the IP to a reference to QUIT
         LDW A, HIMEM            ; get end of used memory...
@@ -75,7 +82,19 @@ DUP_code:
 ; TODO - 1-
 ; TODO - 4+
 ; TODO - 4-
-; TODO - +
+
+
+; --- ADD (+)
+        .dict "+"
+ADD:    .word ADD_code
+ADD_code:
+        DPOP A
+        DPOP B
+        ADD A, B
+        DPUSH A
+        JMP next
+
+
 ; TODO - -
 ; TODO - *
 ; TODO - /MOD
@@ -211,7 +230,23 @@ STATE_code:
 ; Built-in Constants
 ; -------------------------------------------------------------------
 
-; TODO - constants
+; TODO - VERSION constant
+; TODO - R0 constant
+; TODO - DOCOL constant
+; TODO - F_IMMED constant
+
+
+; --- F_HIDDEN constant
+        .dict "F_HIDDEN"
+        .word F_HIDDEN_code
+F_HIDDEN_code:
+        LDW A, F_HIDDEN
+        DPUSH A
+        JMP next
+
+
+; TODO - F_LENMASK constant
+
 
 
 
@@ -407,7 +442,7 @@ _FIND_1:
         LDW A, $2               ; get length address...
         ADD A, I                ; ...into X
         LDB B, (A)              ; get the length
-        ; TODO - mask off the immediate flag
+        AND B, F_LENHIDMASK     ; ...and apply it
         CMP Y, B                ; do lengths match?
         JNE _FIND_2             ; nope, try next dict entry
 
@@ -464,8 +499,8 @@ TCFA_code:
         ; Convert dict pointer in Z to codeword pointer in Z
 _TCFA:  ADD Z, $2               ; skip link pointer
         LDB A, (Z)              ; load len+flags into M
+        AND A, F_LENMASK        ; mask off the flags
         INC Z                   ; skip len+flags
-        ; TODO - mask the flags in M to get just the length
         ADD Z, A                ; skip the name
         RET
 
@@ -510,18 +545,18 @@ _CREATE_2:
         .dict ","
 COMMA:  .word COMMA_code
 COMMA_code:
-        DPOP X                  ; data to store
+        DPOP Z                  ; data to store
         CALL _COMMA
         JMP next
-_COMMA: LDW I, (var_HERE)       ; add word in X to dict entry
-        STW X, (I)
+_COMMA: LDW I, (var_HERE)       ; add word in Z to dict entry
+        STW Z, (I)
         ADD I, $2
         STW I, (var_HERE)
         RET
 
 
 ; --- LBRAC ([)
-        .dict "["               ; TODO - needs IMMEDIATE flag!!!
+        .dict "[", IMMED
 LBRAC:  .word LBRAC_code
 LBRAC_code:
         LDW A, $0
@@ -554,7 +589,7 @@ COLON:  .word DOCOL
 
 
 ; --- SEMICOLON (;)
-        .dict ";"               ; TODO - need IMMEDIATE flag!!!
+        .dict ";", IMMED
 SEMICOLON:
         .word DOCOL
         .word LIT
@@ -571,14 +606,29 @@ SEMICOLON:
 ; Extending the compiler
 ; -------------------------------------------------------------------
 
-; TODO - IMMEDIATE
+
+; --- IMMEDIATE
+        .dict "IMMEDIATE"
+IMMEDIATE:
+        .word IMMEDIATE_code
+IMMEDIATE_code:
+        DPOP A              ; get the address of the dict entry
+        ADD A, $2           ; skip link pointer
+        LDB B, (A)          ; get the length/flags byte
+        XOR B, F_IMMED      ; flip the bit
+        STB B, (A)          ; and save it back
+        JMP next
+
 
 ; --- HIDDEN
         .dict "HIDDEN"
 HIDDEN: .word HIDDEN_code
 HIDDEN_code:
-        DPOP A              ; TODO - HACK - just drop the address for now
-        ; TODO - implement HIDDEN!
+        DPOP A              ; get the address of the dict entry
+        ADD A, $2           ; skip link pointer
+        LDB B, (A)          ; get the length/flags byte
+        XOR B, F_HIDDEN     ; flip the bit
+        STB B, (A)          ; and save it back
         JMP next
 
 
@@ -638,13 +688,18 @@ INTERPRET_code:
         CMP Z, $0               ; found?
         JEQ _INTERP_1           ; nope
 
-        ; In the dictionary. Is it an IMMEDIATE codeword?
-        ; TODO - test for immediate by checking flags, and jump if it is
+        LDW M, Z                ; is it an immediate word?
+        ADD M, $2
+        AND M, F_IMMED
+
         CALL _TCFA              ; takes dict pointer in Z and returns codeword address in Z
 
         LDW CA, Z
 
-        JMP _INTERP_2           ; not immediate
+        CMP M, $0
+        JEQ _INTERP_2           ; not immediate
+        JMP _INTERP_4           ; immediate, go execute it!
+
 
         ; Not in the dictionary; assume a literal number
 _INTERP_1:
@@ -657,11 +712,19 @@ _INTERP_1:
 
         ; We have a word, are we compiling or executing?
 _INTERP_2:
-        ; TODO - test STATE to see if we're executing or compiling
+        LDW A, (var_STATE)      ; check STATE
+        CMP A, $0
+        JEQ _INTERP_4           ; executing
 
-        JMP _INTERP_4           ; executing
+        CALL _COMMA             ; append the word
+        LDW A, (interpret_is_lit)
+        CMP A, $0               ; is it a literal?
+        JEQ _INTERP_3           ; nope
+        LDW Z, X                ; yep - literal - store it
+        CALL _COMMA
 
-        ; TODO - _INTERP_3 - compile the word
+_INTERP_3:
+        JMP next
 
         ; Executing - run the word
 _INTERP_4:

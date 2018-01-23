@@ -2,18 +2,13 @@
 
 * Virtual Machine
   * Rather than implementing PUTC, PSTACK, PUTN, GETC, etc., use syscall-type mechanism
-  * Implement bitwise opcodes: AND, OR, XOR, NOT
+  * Implement unary bitwise opcode: NOT
   * On reset, clear input buffers
   * Should arith/logic operators (ADD, SUB, AND, etc) set the zero flag?
   * Put data stack and return stack in memory
 * Forth
-  * Implement IMMEDIATE and HIDDEN flags!
   * Change hacky DOT and SDOT to pass the BASE to eliminate dependence on symbols
-  * Implement `HIDDEN` (which requires flags on length byte)
-  * Implement `,` (comma)
-  * Implement `:` (colon)
-  * Implement `;` (semi-colon)
-  * Implement `INTERPRET`
+  * Finish `INTERPRET` (compiling not quite working right)
 * Debugger:
   * Add sentinal words before and after dictionary definitions and enhance `dict` command to search for these to align
   * In `print`, for CA and IP, show word+offset, such as `QUIT+2`
@@ -28,7 +23,6 @@
   * Tie source code (via map file?) into debugger and show via `list`
   * Make aliases into aliases ("p" for "print") rather than defining the word multiple times
 * Assembler:
-  * BUG: ignore semi-colon inside string so `.dict ";"` will work!
   * Enhance `.word` so it can take multiple values (`.word FOO, BAR, $26`)
   * BUG: handle `CMP X, $' '`     (thinks the space is between args), also `.ascii "Two Words"`, which segfaults
   * Handle `CMP X, $'\n'`         (backslash escaping)
@@ -44,6 +38,7 @@
 
 * ~~BUG: `BRANCH` is not working correctly, as `ADD IP, (IP)` where `(IP)` is `$-8` is going forward, not back~~
 * Virtual Machine
+  * ~~Implement binary bitwise opcodes: AND, OR, XOR~~
   * ~~Implement BRK to drop out to debugger~~
   * ~~Implement DCLR and RCLR to clear stacks~~
   * ~~Implement NEG to finish `>NUMBER`~~
@@ -57,6 +52,11 @@
   * ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~
   * ~~Get rid of GO and replace with JMP with proper address modes~~
 * Forth
+  * ~~Implement IMMEDIATE and HIDDEN flags!~~
+  * ~~Implement `HIDDEN` (which requires flags on length byte)~~
+  * ~~Implement `,` (comma)~~
+  * ~~Implement `:` (colon)~~
+  * ~~Implement `;` (semi-colon)~~
   * ~~Implement placeholder `.S` for testing~~
   * ~~Implement `>NUMBER` (`NUMBER` in JonesForth?)~~
   * ~~Implement `FIND`~~
@@ -85,6 +85,7 @@
   * ~~implement disassembly (list) command~~
   * ~~clean up command handling (use a lookup table or some such)~~
 * Assembler:
+  * ~~BUG: ignore semi-colon inside string so `.dict ";"` will work!~~
   * ~~Add .asciz to embed null-terminated strings~~
   * ~~Write pseudo to create Forth dictionary header~~
   * ~~Write symbols to a file~~

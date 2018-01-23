@@ -14,10 +14,13 @@
 #include "simulator.h"
 #include "opcodes.h"
 #include "util.h"
+#include "forth.h"
 
 #define SEPS " \t\n"
 #define HIST_FILE ".ffhist"
 #define DUMP_SIZE (5 * 16)
+
+
 
 typedef struct Options
 {
@@ -586,7 +589,7 @@ void dc_find(Context *context)
     // Keep searching until we find something...
     while (addr != 0)
     {
-        unsigned char dict_len = context->sim->memory[addr + 2];    // TODO - mask off flags
+        unsigned char dict_len = context->sim->memory[addr + 2] & F_LENMASK;
         if (dict_len == name_len)
         {
             memset(buf, 0, MAXCHAR);
@@ -667,22 +670,21 @@ void dc_dict(Context *context)
         strcat(code, sym);
     }
 
-    /*
-    unsigned short docolAddr;
-    sim_lookup_symbol(context->sim, "DOCOL", &docolAddr);
-    if (codeAddr == docolAddr)
+    char flags[20];
+    strcpy(flags, "");
+    if (len & F_IMMED)
     {
-        strcpy(code, "DOCOL");
+        strcat(flags, "I");
     }
-    else
+    if (len & F_HIDDEN)
     {
-        sprintf(code, "0x%04X", codeAddr);
+        strcat(flags, "H");
     }
-    */
+    len &= 0x1F;
 
-    printf("         +--------+----+-----------------+----------------------+\n");
-    printf(" 0x%04X: | 0x%04X | %2d | %-15.15s | %-20.20s |\n", addr, prev, len, name, code);
-    printf("         +--------+----+-----------------+----------------------+\n");
+    printf("         +--------+-------+-----------------+----------------------+\n");
+    printf(" 0x%04X: | 0x%04X | %2d %2s | %-15.15s | %-20.20s |\n", addr, prev, len, flags, name, code);
+    printf("         +--------+-------+-----------------+----------------------+\n");
 
     unsigned short docolAddr;
     unsigned short exitAddr;
@@ -705,7 +707,7 @@ void dc_dict(Context *context)
                 strcat(code, sym);
             }
 
-            printf("                                 0x%04X: | %-20.20s |\n", addr, code);
+            printf("                                    0x%04X: | %-20.20s |\n", addr, code);
 
             if (codeAddr == exitAddr || codeAddr == branchAddr)
             {
@@ -713,7 +715,7 @@ void dc_dict(Context *context)
             }
         }
 
-        printf("                                         +----------------------+\n");
+        printf("                                            +----------------------+\n");
     }
 }
 

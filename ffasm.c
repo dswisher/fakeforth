@@ -9,7 +9,12 @@
 #include "simulator.h"
 #include "opcodes.h"
 #include "util.h"
+#include "forth.h"
 
+
+#define OK 0
+#define ERROR 1
+#define UNHANDLED 2
 
 
 typedef struct ArgCount
@@ -47,6 +52,9 @@ ArgCount arg_counts[] =
     { OP_RCLR, 0 },
     { OP_BRK, 0 },
     { OP_ADD, 2 },
+    { OP_AND, 2 },
+    { OP_OR, 2 },
+    { OP_XOR, 2 },
     { OP_MUL, 2 },
     { OP_SUB, 2 },
     { OP_CALL, 1 },
@@ -73,6 +81,14 @@ typedef struct SymbolRef
 } SymbolRef;
 
 
+typedef struct Variable
+{
+    char *name;
+    unsigned short value;
+    struct Variable *next;
+} Variable;
+
+
 typedef struct Symbol
 {
     char *name;
@@ -86,6 +102,7 @@ typedef struct Context
 {
     char *memory;
     unsigned short origin;
+    Variable *variables;        // linked list of variables
     Symbol *symbols;            // linked list of symbols
     int num_symbols;
     int line_number;
@@ -137,10 +154,24 @@ void strip_comments(char *str)
     char *c = str;
     while (*c != ';' && *c != 0)
     {
-        c++;
+        if (*c == '"')
+        {
+            c++;
+            while (*c != '"' && *c != 0)
+            {
+                c++;
+            }
+            if (*c == '"')
+            {
+                c++;
+            }
+        }
+        else
+        {
+            c++;
+        }
     }
 
-    // TODO - handle a semi-colon inside a string
     if (*c == ';')
     {
         *c = 0;
@@ -148,6 +179,7 @@ void strip_comments(char *str)
 
     c--;
 
+    // Remove trailing whitespace
     while (c >= str)
     {
         if (isspace(*c))
@@ -231,6 +263,47 @@ void add_literal(Context *context, char *literal)
 }
 
 
+Variable *set_variable(Context *context, char *name, char *val)
+{
+    unsigned short word = strtol(val + 1, NULL, 16);    // val + 1 to skip leading $
+
+    // If the var already exists, just update the value
+    Variable *var;
+    for (var = context->variables; var != NULL; var = var->next)
+    {
+        if (!strcmp(var->name, name))
+        {
+            var->value = word;
+            return var;
+        }
+    }
+
+    // Var does not exist; create it.
+    var = malloc(sizeof(Variable));
+    var->next = context->variables;
+    var->name = strdup(name);
+    var->value = word;
+    context->variables = var;
+
+    return var;
+}
+
+
+Variable *lookup_variable(Context *context, char *name)
+{
+    Variable *var = context->variables;
+    while (var != NULL)
+    {
+        if (!strcmp(var->name, name))
+        {
+            return var;
+        }
+        var = var->next;
+    }
+    return NULL;
+}
+
+
 Symbol *lookup_symbol(Context *context, char *name)
 {
     Symbol *symbol = context->symbols;
@@ -289,10 +362,27 @@ void add_string(Context *context, char *str)
 }
 
 
-bool parse_pseudo(Context *context, int argc, char *argv[])
+bool check_arg_count(Context *context, char *name, int seen, int needed)
+{
+    if (seen < needed)
+    {
+        print_error(context, "Incorrect number of arguments to '%s': need at least %d, but only got %d.\n", name, needed, seen);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+
+int parse_pseudo(Context *context, int argc, char *argv[])
 {
     if (!strcmp(argv[0], ".word"))
     {
+        if (!check_arg_count(context, argv[0], argc, 1))
+        {
+            return ERROR;
+        }
+
         if (argv[1][0] == '$')
         {
             add_literal(context, argv[1]);
@@ -302,40 +392,96 @@ bool parse_pseudo(Context *context, int argc, char *argv[])
             add_label_ref(context, argv[1]);
         }
 
-        return TRUE;
+        return OK;
     }
 
     if (!strcmp(argv[0], ".byte"))
     {
+        if (!check_arg_count(context, argv[0], argc, 1))
+        {
+            return ERROR;
+        }
+
         unsigned char val = strtol(&(argv[1][1]), NULL, 16);
         add_byte(context, val);
-        return TRUE;
+        return OK;
     }
 
     if (!strcmp(argv[0], ".ascii"))
     {
+        if (!check_arg_count(context, argv[0], argc, 1))
+        {
+            return ERROR;
+        }
+
         add_string(context, argv[1]);
-        return TRUE;
+        return OK;
     }
 
     if (!strcmp(argv[0], ".asciz"))
     {
+        if (!check_arg_count(context, argv[0], argc, 1))
+        {
+            return ERROR;
+        }
+
         add_string(context, argv[1]);
         add_byte(context, 0);
-        return TRUE;
+        return OK;
+    }
+
+    if (!strcmp(argv[0], ".set"))
+    {
+        if (!check_arg_count(context, argv[0], argc, 2))
+        {
+            return ERROR;
+        }
+
+        set_variable(context, argv[1], argv[2]);
+        return OK;
     }
 
     if (!strcmp(argv[0], ".space"))
     {
+        if (!check_arg_count(context, argv[0], argc, 1))
+        {
+            return ERROR;
+        }
+
         unsigned short num = strtol(&(argv[1][1]), NULL, 16);
         add_space(context, num);
-        return TRUE;
+        return OK;
     }
 
     if (!strcmp(argv[0], ".dict"))
     {
+        if (!check_arg_count(context, argv[0], argc, 2))
+        {
+            return ERROR;
+        }
+
         char *name = argv[1];
         unsigned char len = strlen(name);
+
+        if (argc > 2)
+        {
+            for (int i = 2; i < argc; i++)
+            {
+                if (!strcmp(argv[i], "IMMED"))
+                {
+                    len |= F_IMMED;
+                }
+                else if (!strcmp(argv[i], "HIDDEN"))
+                {
+                    len |= F_HIDDEN;
+                }
+                else
+                {
+                    print_error(context, "Unexpected dict flag: %s\n", argv[i]);
+                    return ERROR;
+                }
+            }
+        }
 
         // Save the current addr
         unsigned short addr = context->origin;
@@ -348,17 +494,17 @@ bool parse_pseudo(Context *context, int argc, char *argv[])
         // Remember where to link the next word
         context->last_dict = addr;
 
-        return TRUE;
+        return OK;
     }
 
     if (!strcmp(argv[0], ".lastdict"))
     {
         // Equivalent to ".word last_dict"
         add_word(context, context->last_dict);
-        return TRUE;
+        return OK;
     }
 
-    return FALSE;
+    return UNHANDLED;
 }
 
 
@@ -449,6 +595,7 @@ int parse_address_mode(Context *context, char *arg)
 bool add_by_mode(Context *context, int mode, char *arg)
 {
     char *inner;
+    Variable *var;
     switch (mode)
     {
         case ADDR_MODE0:
@@ -458,6 +605,11 @@ bool add_by_mode(Context *context, int mode, char *arg)
             if (arg[0] == '$')
             {
                 add_literal(context, arg);
+                return TRUE;
+            }
+            else if ((var = lookup_variable(context, arg)) != NULL)
+            {
+                add_word(context, var->value);
                 return TRUE;
             }
             else
@@ -546,6 +698,7 @@ bool parse_opcode(Context *context, char *opcode)
 {
     char *argv[MAXARGS];
     int argc = 0;
+    int status;
 
     split_params(opcode, argv, &argc);
 
@@ -556,9 +709,19 @@ bool parse_opcode(Context *context, char *opcode)
         return FALSE;
     }
 
-    if (parse_pseudo(context, argc, argv))
+    status = parse_pseudo(context, argc, argv);
+    if (status == OK)
     {
         return TRUE;
+    }
+    else if (status == ERROR)
+    {
+        return FALSE;
+    }
+    else if (status != UNHANDLED)
+    {
+        printf("Unexpected return value from parse_pseudo: %d\n", status);
+        return FALSE;
     }
 
     unsigned short code = op_name_to_code(argv[0]);
@@ -590,6 +753,9 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_LDW:
         case OP_LDB:
         case OP_ADD:
+        case OP_AND:
+        case OP_OR:
+        case OP_XOR:
         case OP_MUL:
         case OP_SUB:
         case OP_CMP:
@@ -652,6 +818,9 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_PUTN:
         case OP_PUTS:
         case OP_ADD:
+        case OP_AND:
+        case OP_OR:
+        case OP_XOR:
         case OP_MUL:
         case OP_SUB:
         case OP_CMP:
@@ -670,6 +839,9 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_STW:
         case OP_STB:
         case OP_ADD:
+        case OP_AND:
+        case OP_OR:
+        case OP_XOR:
         case OP_MUL:
         case OP_SUB:
         case OP_CMP:
@@ -770,6 +942,7 @@ bool assemble(FILE *in, Options *options)
     context->memory = malloc(MEMSIZE);
     context->origin = 0;
     context->symbols = NULL;
+    context->variables = NULL;
     context->num_symbols = 0;
     context->line_number = 0;
     context->last_dict = 0;

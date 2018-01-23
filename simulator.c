@@ -439,6 +439,24 @@ unsigned short add_operation(unsigned short a, unsigned short b)
 }
 
 
+unsigned short xor_operation(unsigned short a, unsigned short b)
+{
+    return a ^ b;
+}
+
+
+unsigned short or_operation(unsigned short a, unsigned short b)
+{
+    return a | b;
+}
+
+
+unsigned short and_operation(unsigned short a, unsigned short b)
+{
+    return a & b;
+}
+
+
 unsigned short sub_operation(unsigned short a, unsigned short b)
 {
     return a - b;
@@ -711,6 +729,18 @@ void sim_step(Simulator *sim)
         case OP_LDW:
         case OP_LDB:
             execute_load(sim, mode, code);
+            break;
+
+        case OP_XOR:
+            execute_arithmetic(sim, mode, xor_operation);
+            break;
+
+        case OP_AND:
+            execute_arithmetic(sim, mode, and_operation);
+            break;
+
+        case OP_OR:
+            execute_arithmetic(sim, mode, or_operation);
             break;
 
         case OP_ADD:
@@ -993,6 +1023,9 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_PUTC:
         case OP_PUTS:
         case OP_ADD:
+        case OP_AND:
+        case OP_OR:
+        case OP_XOR:
         case OP_MUL:
         case OP_SUB:
         case OP_CMP:
@@ -1014,6 +1047,9 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_STW:
         case OP_STB:
         case OP_ADD:
+        case OP_AND:
+        case OP_OR:
+        case OP_XOR:
         case OP_MUL:
         case OP_SUB:
         case OP_CMP:
