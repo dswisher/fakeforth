@@ -13,7 +13,6 @@
   * Add sentinal words before and after dictionary definitions and enhance `dict` command to search for these to align
   * In `print`, for CA and IP, show word+offset, such as `QUIT+2`
   * Implement word to list breakpoints
-  * Implement step-over (execute `CALL` and stop on next line)
   * Implement tracepoints (print summary state when line is hit)
   * Show ascii character(s) next to registers, perhaps disassembly (CMP X, 0x005C  .\)
   * Change `pc` and similar commands to just push an "address" on the stack, then implement `@` and `!` so we can update registers
@@ -22,6 +21,7 @@
   * Implement simple arithmetic
   * Tie source code (via map file?) into debugger and show via `list`
   * Make aliases into aliases ("p" for "print") rather than defining the word multiple times
+  * Add a help command to list all the commands
 * Assembler:
   * Enhance `.word` so it can take multiple values (`.word FOO, BAR, $26`)
   * BUG: handle `CMP X, $' '`     (thinks the space is between args), also `.ascii "Two Words"`, which segfaults
@@ -66,6 +66,7 @@
   * ~~Implement `EMIT`, which requires new PUTC opcode~~
   * ~~Implement `LIT`, `!` and `@`~~
 * Debugger:
+  * ~~Implement step-over (execute `CALL` and stop on next line)~~
   * ~~Implement a word to dump a Forth dictionary entry~~
   * ~~Keep track of the last PC and show that one bit of history when disassembling~~
   * ~~BAD IDEA: Do not show symbols for mode 1 addressing~~

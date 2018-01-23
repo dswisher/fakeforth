@@ -798,7 +798,7 @@ bool parse_opcode(Context *context, char *opcode)
             break;
 
         case OP_CALL:
-            // TODO - should we allow other modes?
+            // TODO - should we allow other modes? (If so, revisit sim_step_over!)
             add_label_ref(context, argv[1]);
             break;
 

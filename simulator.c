@@ -21,8 +21,7 @@ Simulator *sim_init(char *objfile)
     sim->memory = malloc(MEMSIZE);
     sim->num_symbols = 0;
     sim->symbols = NULL;
-    sim->num_breakpoints = 0;
-    sim->breakpoints = malloc(sizeof(unsigned short) * MAX_BREAKPOINTS);
+    sim->breakpoints = NULL;
     sim->data_stack = NULL;
     sim->return_stack = NULL;
     sim->call_stack = NULL;
@@ -68,11 +67,25 @@ void sim_load_symbols(Simulator *sim, char *symname)
 }
 
 
+bool sim_is_breakpoint(Simulator *sim, unsigned short addr)
+{
+    for (Breakpoint *bp = sim->breakpoints; bp != NULL; bp = bp->next)
+    {
+        if (bp->addr == addr)
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+
 void sim_run(Simulator *sim)
 {
     while (!sim->halted)
     {
-        sim_step(sim);
+        sim_step_into(sim);
 
         if (sim->stopped)
         {
@@ -80,13 +93,11 @@ void sim_run(Simulator *sim)
             return;
         }
 
-        for (int i = 0; i < sim->num_breakpoints; i++)
+        if (sim_is_breakpoint(sim, sim->pc))
         {
-            if (sim->breakpoints[i] == sim->pc)
-            {
-                printf("-> BREAK at 0x%04X.\n", sim->pc);
-                return;
-            }
+            // TODO - add a "silent" flag (or temporary flag) so step-over doesn't print this message
+            printf("-> BREAK at 0x%04X.\n", sim->pc);
+            return;
         }
     }
 }
@@ -670,7 +681,33 @@ void print_number(Simulator *sim, short num)
 }
 
 
-void sim_step(Simulator *sim)
+void sim_step_over(Simulator *sim)
+{
+    // If the current statement is not a call, just step into
+    if (sim->memory[sim->pc] != OP_CALL)
+    {
+        sim_step_into(sim);
+        return;
+    }
+
+    // It is a call; set a breakpoint on the next statement
+    unsigned short addr = sim->pc + 3;
+    bool exists = sim_is_breakpoint(sim, addr);
+    if (!exists)
+    {
+        sim_toggle_breakpoint(sim, addr);
+    }
+
+    sim_run(sim);
+
+    if (!exists)
+    {
+        sim_toggle_breakpoint(sim, addr);
+    }
+}
+
+
+void sim_step_into(Simulator *sim)
 {
     if (sim->halted)
     {
@@ -1100,13 +1137,9 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
     }
 
     char *bp = "";
-    for (int i = 0; i < sim->num_breakpoints; i++)
+    if (sim_is_breakpoint(sim, start))
     {
-        if (start == sim->breakpoints[i])
-        {
-            bp = "*B*";
-            break;
-        }
+        bp = "*B*";
     }
 
     printf(" %-2s %-3s 0x%04X %-12.12s %-8s %s\n", indi, bp, start, buf2, format_bytes(sim, start, end), buf);
@@ -1123,31 +1156,28 @@ void sim_disassemble(Simulator *sim, unsigned short addr, int num)
 }
 
 
+// TODO - add temporary flag
 void sim_toggle_breakpoint(Simulator *sim, unsigned short addr)
 {
-    // Does it exist already? If so, remove it from the list...
-    for (int i = 0; i < sim->num_breakpoints; i++)
+    // If the breakpoint already exists, remove it from the list...
+    for (Breakpoint *bp = sim->breakpoints, *prev = NULL; bp != NULL; prev = bp, bp = bp->next)
     {
-        if (sim->breakpoints[i] == addr)
+        if (bp->addr == addr)
         {
-            // Found it - remove it
-            for (int j = 0; j < sim->num_breakpoints - 1; j++)
-            {
-                sim->breakpoints[j] = sim->breakpoints[j + 1];
-            }
-            sim->num_breakpoints -= 1;
+            // TODO - delete the node and return
             printf("Breakpoint at 0x%04X cleared.\n", addr);
             return;
         }
     }
 
-    if (sim->num_breakpoints == MAX_BREAKPOINTS - 1)
-    {
-        printf("-> too many breakpoints!\n");
-        return;
-    }
+    // Breakpoint does not exist; add it.
+    Breakpoint *bp = malloc(sizeof(Breakpoint));
+    bp->addr = addr;
+    bp->next = sim->breakpoints;
+    bp->temporary = FALSE;
 
-    sim->breakpoints[sim->num_breakpoints++] = addr;
+    sim->breakpoints = bp;
+
     printf("Breakpoint at 0x%04X set.\n", addr);
 }
 

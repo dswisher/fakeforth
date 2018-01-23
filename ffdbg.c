@@ -375,9 +375,15 @@ void dc_dot(Context *context)
 }
 
 
-void dc_next(Context *context)
+void dc_step_into(Context *context)
 {
-    sim_step(context->sim);
+    sim_step_into(context->sim);
+}
+
+
+void dc_step_over(Context *context)
+{
+    sim_step_over(context->sim);
 }
 
 
@@ -630,7 +636,7 @@ void dc_reset(Context *context)
 
 char *read_dict_string(Simulator *sim, unsigned short addr)
 {
-    unsigned char len = sim_read_byte(sim, addr);
+    unsigned char len = sim_read_byte(sim, addr) & F_LENMASK;
 
     static char buf[MAXCHAR];
     memset(buf, 0, MAXCHAR);
@@ -655,7 +661,7 @@ void dc_dict(Context *context)
     Simulator *sim = context->sim;
 
     unsigned short prev = sim_read_word(sim, addr);
-    unsigned char len = sim_read_byte(sim, addr + 2);
+    unsigned char len = sim_read_byte(sim, addr + 2) & F_LENMASK;
     unsigned short codeAddr = sim_read_word(sim, addr + 3 + len);
 
     char name[MAXCHAR];
@@ -752,8 +758,10 @@ Context *create_context(Simulator *sim)
     add_command(context, ".", dc_dot);
     add_command(context, "quit", dc_quit);
     add_command(context, "q", dc_quit);
-    add_command(context, "n", dc_next);
-    add_command(context, "next", dc_next);
+    add_command(context, "n", dc_step_into);
+    add_command(context, "next", dc_step_into);
+    add_command(context, "over", dc_step_over);
+    add_command(context, "o", dc_step_over);
     add_command(context, "run", dc_run);
     add_command(context, "list", dc_list);
     add_command(context, "l", dc_list);

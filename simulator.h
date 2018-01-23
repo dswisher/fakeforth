@@ -4,7 +4,7 @@
 #include "common.h"
 
 #define MEMSIZE 1<<16
-#define MAX_BREAKPOINTS 100
+
 
 typedef struct SimSymbol
 {
@@ -18,6 +18,14 @@ typedef struct StackNode
     unsigned short value;
     struct StackNode *next;
 } StackNode;
+
+
+typedef struct Breakpoint
+{
+    unsigned short addr;
+    bool temporary;             // used to implement step-over
+    struct Breakpoint *next;
+} Breakpoint;
 
 
 typedef struct Simulator
@@ -52,8 +60,7 @@ typedef struct Simulator
     bool debugging; // TRUE if running in debugger
 
     // Set of addresses that have breakpoints set
-    int num_breakpoints;
-    unsigned short *breakpoints;
+    Breakpoint *breakpoints;
 
     // Debugging helpers
     unsigned short last_pc;
@@ -67,7 +74,8 @@ typedef struct Simulator
 Simulator *sim_init(char *objfile);
 void sim_load_symbols(Simulator *sim, char *symfile);
 void sim_run(Simulator *sim);
-void sim_step(Simulator *sim);
+void sim_step_into(Simulator *sim);
+void sim_step_over(Simulator *sim);
 void sim_disassemble(Simulator *sim, unsigned short addr, int num);
 char *sim_reverse_lookup_symbol(Simulator *sim, unsigned short addr);
 bool sim_lookup_symbol(Simulator *sim, char *name, unsigned short *addr);
