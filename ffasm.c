@@ -488,7 +488,7 @@ int parse_pseudo(Context *context, int argc, char *argv[])
 
         // Set up the entry
         add_word(context, context->last_dict);  // pointer to prev word
-        add_byte(context, len);                 // length - TODO - need flags for immediate and whatnot!
+        add_byte(context, len);                 // length + flags
         add_string(context, name);
 
         // Remember where to link the next word

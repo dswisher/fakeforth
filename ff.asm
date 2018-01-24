@@ -598,7 +598,7 @@ SEMICOLON:
         .word LATEST
         .word FETCH
         .word HIDDEN            ; unhide the word
-        .word LBRAC             ; to into immediate mode
+        .word LBRAC             ; go back into immediate mode
         .word EXIT
 
 
@@ -690,6 +690,7 @@ INTERPRET_code:
 
         LDW M, Z                ; is it an immediate word?
         ADD M, $2
+_FRED:  LDB M, (M)
         AND M, F_IMMED
 
         CALL _TCFA              ; takes dict pointer in Z and returns codeword address in Z

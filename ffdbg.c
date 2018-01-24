@@ -661,8 +661,8 @@ void dc_dict(Context *context)
     Simulator *sim = context->sim;
 
     unsigned short prev = sim_read_word(sim, addr);
-    unsigned char len = sim_read_byte(sim, addr + 2) & F_LENMASK;
-    unsigned short codeAddr = sim_read_word(sim, addr + 3 + len);
+    unsigned char len = sim_read_byte(sim, addr + 2);
+    unsigned short codeAddr = sim_read_word(sim, addr + 3 + (len & F_LENMASK));
 
     char name[MAXCHAR];
     strcpy(name, read_dict_string(sim, addr + 2));
@@ -686,7 +686,8 @@ void dc_dict(Context *context)
     {
         strcat(flags, "H");
     }
-    len &= 0x1F;
+
+    len &= F_LENMASK;
 
     printf("         +--------+-------+-----------------+----------------------+\n");
     printf(" 0x%04X: | 0x%04X | %2d %2s | %-15.15s | %-20.20s |\n", addr, prev, len, flags, name, code);

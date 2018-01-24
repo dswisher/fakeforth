@@ -7,8 +7,17 @@
   * Should arith/logic operators (ADD, SUB, AND, etc) set the zero flag?
   * Put data stack and return stack in memory
 * Forth
+  * Implement remaining "easy" forth primitives (see TODOs in ff.asm)
+  * Implement tick word
+  * Implement `CHAR` and `EXECUTE`
+  * Implement `-`, `*` and `/MOD`
+  * Implement comparison words (see TODOs in ff.asm)
+  * Implement remaining memory words (`+!`, `-!`, etc; see TODOs in ff.asm)
+  * Implement remaining built-in constant words: `VERSION`, `R0`, `DOCOL`, `F_IMMED`, `F_LENMASK`
+  * Implement return-stack words: `>R`, `R>`, `RSP@`, `RSP!`, `RDROP`
+  * Implement data-stack words: `DSP@`, `DSP!`
+  * Implement `0BRANCH` word
   * Change hacky DOT and SDOT to pass the BASE to eliminate dependence on symbols
-  * Finish `INTERPRET` (compiling not quite working right)
 * Debugger:
   * Add sentinal words before and after dictionary definitions and enhance `dict` command to search for these to align
   * In `print`, for CA and IP, show word+offset, such as `QUIT+2`
@@ -52,6 +61,7 @@
   * ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~
   * ~~Get rid of GO and replace with JMP with proper address modes~~
 * Forth
+  * ~~Finish `INTERPRET` (compiling not quite working right)~~
   * ~~Implement IMMEDIATE and HIDDEN flags!~~
   * ~~Implement `HIDDEN` (which requires flags on length byte)~~
   * ~~Implement `,` (comma)~~
