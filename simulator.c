@@ -1164,7 +1164,15 @@ void sim_toggle_breakpoint(Simulator *sim, unsigned short addr)
     {
         if (bp->addr == addr)
         {
-            // TODO - delete the node and return
+            if (prev == NULL)
+            {
+                sim->breakpoints = bp->next;
+            }
+            else
+            {
+                prev->next = bp->next;
+            }
+            free(bp);
             printf("Breakpoint at 0x%04X cleared.\n", addr);
             return;
         }

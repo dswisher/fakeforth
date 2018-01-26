@@ -71,7 +71,18 @@ DUP_code:
         JMP next
 
 
-; TODO - OVER
+; --- OVER
+        .dict "OVER"
+OVER:   .word OVER_code
+OVER_code:
+        DPOP A
+        DPOP B
+        DPUSH B
+        DPUSH A
+        DPUSH B
+        CALL next
+
+
 ; TODO - ROT
 ; TODO - -ROT
 ; TODO - 2DROP

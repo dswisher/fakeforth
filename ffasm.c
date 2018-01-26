@@ -281,7 +281,7 @@ Variable *set_variable(Context *context, char *name, char *val)
     // Var does not exist; create it.
     var = malloc(sizeof(Variable));
     var->next = context->variables;
-    var->name = strdup(name);
+    var->name = my_strdup(name);
     var->value = word;
     context->variables = var;
 

@@ -627,6 +627,30 @@ void dc_toggle_breakpoint(Context *context)
 }
 
 
+void dc_list_breakpoints(Context *context)
+{
+    Simulator *sim = context->sim;
+    if (sim->breakpoints != NULL)
+    {
+        printf("Breakpoints:\n");
+    }
+    char entry[MAXCHAR];
+    for (Breakpoint *bp = sim->breakpoints; bp != NULL; bp = bp->next)
+    {
+        sprintf(entry, "   0x%04X", bp->addr);
+        char *sym = sim_reverse_lookup_symbol(sim, bp->addr);
+        if (sym != NULL)
+        {
+            strcat(entry, " ");
+            strcat(entry, sym);
+        }
+        strcat(entry, "\n");
+
+        fputs(entry, stdout);
+    }
+}
+
+
 void dc_reset(Context *context)
 {
     sim_reset(context->sim);
@@ -777,6 +801,7 @@ Context *create_context(Simulator *sim)
     add_command(context, "find", dc_find);
     add_command(context, "break", dc_toggle_breakpoint);
     add_command(context, "b", dc_toggle_breakpoint);
+    add_command(context, "breakpoints", dc_list_breakpoints);
     add_command(context, "reset", dc_reset);
     add_command(context, "dict", dc_dict);
 
