@@ -7,7 +7,6 @@
   * Should arith/logic operators (ADD, SUB, AND, etc) set the zero flag?
   * Put data stack and return stack in memory
 * Forth
-  * Implement remaining "easy" forth primitives (see TODOs in ff.asm)
   * Implement tick word
   * Implement `CHAR` and `EXECUTE`
   * Implement `-`, `*` and `/MOD`
@@ -60,6 +59,7 @@
   * ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~
   * ~~Get rid of GO and replace with JMP with proper address modes~~
 * Forth
+  * ~~Implement remaining "easy" forth primitives (see TODOs in ff.asm)~~
   * ~~Finish `INTERPRET` (compiling not quite working right)~~
   * ~~Implement IMMEDIATE and HIDDEN flags!~~
   * ~~Implement `HIDDEN` (which requires flags on length byte)~~

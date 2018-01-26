@@ -47,7 +47,7 @@ cold_start:                     ; colon-word w/o a header or codeword
 DROP:   .word DROP_code
 DROP_code:
         DPOP A                  ; throw away
-        CALL next
+        JMP next
 
 
 ; --- SWAP - swap top two elements of stack
@@ -58,7 +58,7 @@ SWAP_code:
         DPOP B
         DPUSH A
         DPUSH B
-        CALL next
+        JMP next
 
 
 ; --- DUP
@@ -80,19 +80,89 @@ OVER_code:
         DPUSH B
         DPUSH A
         DPUSH B
-        CALL next
+        JMP next
 
 
-; TODO - ROT
-; TODO - -ROT
-; TODO - 2DROP
-; TODO - 2DUP
-; TODO - 2SWAP
-; TODO - ?DUP
-; TODO - 1+
-; TODO - 1-
-; TODO - 4+
-; TODO - 4-
+; --- ROT
+        .dict "ROT"
+ROT:    .word ROT_code
+ROT_code:
+        DPOP A
+        DPOP B
+        DPOP C
+        DPUSH B
+        DPUSH A
+        DPUSH C
+        JMP next
+
+
+; --- 2DROP
+        .dict "2DROP"
+TDROP:  .word TDROP_code
+TDROP_code:
+        DPOP A
+        DPOP A
+        JMP next
+
+
+; --- 2DUP
+        .dict "2DUP"
+TDUP:   .word TDUP_code
+TDUP_code:
+        DPOP A
+        DPOP B
+        DPUSH B
+        DPUSH A
+        DPUSH B
+        DPUSH A
+        JMP next
+
+
+; --- 2SWAP
+        .dict "2SWAP"
+TSWAP:  .word TSWAP_code
+TSWAP_code:
+        DPOP A
+        DPOP B
+        DPOP C
+        DPOP D
+        DPUSH B
+        DPUSH A
+        DPUSH D
+        DPUSH C
+        JMP next
+
+
+; --- ?DUP
+        .dict "?DUP"
+QDUP:   .word QDUP_code
+QDUP_code:
+        DPOP A          ; get the top of stack
+        DPUSH A
+        CMP A, $0
+        JEQ _QDUP
+        DPUSH A
+_QDUP:  JMP next
+
+
+; --- 1+
+        .dict "1+"
+INC:    .word INC_code
+INC_code:
+        DPOP A
+        INC A
+        DPUSH A
+        JMP next
+
+; --- 1-
+        .dict "1-"
+DEC:    .word DEC_code
+DEC_code:
+        DPOP A
+        DEC A
+        DPUSH A
+        JMP next
+
 
 
 ; --- ADD (+)
