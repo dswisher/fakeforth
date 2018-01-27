@@ -187,8 +187,41 @@ ADD_code:
 ; -------------------------------------------------------------------
 
 
-; TODO - =
-; TODO - <>
+        .dict "TRUE"
+TRUE:   .word TRUE_code
+TRUE_code:
+        LDW A, $FF
+        DPUSH A
+        JMP next
+
+        .dict "FALSE"
+FALSE:  .word FALSE_code
+FALSE_code:
+        LDW A, $0
+        DPUSH A
+        JMP next
+
+
+        .dict "="
+EQUAL:  .word EQUAL_code
+EQUAL_code:
+        DPOP A
+        DPOP B
+        CMP A, B
+        JEQ TRUE_code
+        JMP FALSE_code
+
+
+        .dict "<>"
+NEQUAL:  .word NEQUAL_code
+NEQUAL_code:
+        DPOP A
+        DPOP B
+        CMP A, B
+        JEQ FALSE_code
+        JMP TRUE_code
+
+
 ; TODO - <
 ; TODO - >
 ; TODO - <=
