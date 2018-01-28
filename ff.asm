@@ -187,6 +187,7 @@ ADD_code:
 ; -------------------------------------------------------------------
 
 
+; --- TRUE
         .dict "TRUE"
 TRUE:   .word TRUE_code
 TRUE_code:
@@ -194,6 +195,8 @@ TRUE_code:
         DPUSH A
         JMP next
 
+
+; --- FALSE
         .dict "FALSE"
 FALSE:  .word FALSE_code
 FALSE_code:
@@ -202,6 +205,7 @@ FALSE_code:
         JMP next
 
 
+; --- EQUAL (=)
         .dict "="
 EQUAL:  .word EQUAL_code
 EQUAL_code:
@@ -212,6 +216,7 @@ EQUAL_code:
         JMP FALSE_code
 
 
+; --- NOT EQUAL (<>)
         .dict "<>"
 NEQUAL:  .word NEQUAL_code
 NEQUAL_code:
@@ -234,7 +239,16 @@ NEQUAL_code:
 ; TODO - AND
 ; TODO - OR
 ; TODO - XOR
-; TODO - INVERT
+
+
+; --- INVERT (bitwise negation)
+        .dict "INVERT"
+INVERT: .word INVERT_code
+INVERT_code:
+        DPOP A
+        NOT A
+        DPUSH A
+        JMP next
 
 
 

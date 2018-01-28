@@ -519,6 +519,19 @@ void do_compare(Simulator *sim, unsigned short val1, unsigned short val2)
 }
 
 
+void execute_not(Simulator *sim)
+{
+    // TODO - support additional modes for unary opcodes?
+
+    unsigned char reg = sim->memory[sim->pc++];
+    unsigned short result = get_register(sim, reg);
+
+    result = ~result;
+
+    set_register(sim, reg, result);
+}
+
+
 void execute_cmp(Simulator *sim, unsigned char mode)
 {
     unsigned char reg1;
@@ -774,6 +787,10 @@ void sim_step_into(Simulator *sim)
 
         case OP_AND:
             execute_arithmetic(sim, mode, and_operation);
+            break;
+
+        case OP_NOT:
+            execute_not(sim);
             break;
 
         case OP_OR:
@@ -1061,6 +1078,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_PUTS:
         case OP_ADD:
         case OP_AND:
+        case OP_NOT:
         case OP_OR:
         case OP_XOR:
         case OP_MUL:

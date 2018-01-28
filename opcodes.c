@@ -34,6 +34,7 @@ NameMap name_map[] =
     { "PSTACK", OP_PSTACK },
     { "ADD", OP_ADD },
     { "AND", OP_AND },
+    { "NOT", OP_NOT },
     { "OR", OP_OR },
     { "XOR", OP_XOR },
     { "MUL", OP_MUL },

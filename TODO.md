@@ -2,7 +2,6 @@
 
 * Virtual Machine
   * Rather than implementing PUTC, PSTACK, PUTN, GETC, etc., use syscall-type mechanism
-  * Implement unary bitwise opcode: NOT
   * On reset, clear input buffers
   * Should arith/logic operators (ADD, SUB, AND, etc) set the zero flag?
   * Put data stack and return stack in memory
@@ -45,6 +44,7 @@
 
 * ~~BUG: `BRANCH` is not working correctly, as `ADD IP, (IP)` where `(IP)` is `$-8` is going forward, not back~~
 * Virtual Machine
+  * ~~Implement unary bitwise opcode: NOT~~
   * ~~Implement binary bitwise opcodes: AND, OR, XOR~~
   * ~~Implement BRK to drop out to debugger~~
   * ~~Implement DCLR and RCLR to clear stacks~~
