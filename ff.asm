@@ -382,11 +382,44 @@ F_HIDDEN_code:
 ; Return Stack
 ; -------------------------------------------------------------------
 
-; TODO - >R
-; TODO - R>
-; TODO - RSP@
+; --- >R - push top data stack item onto return stack
+        .dict ">R"
+TOR:    .word TOR_code
+TOR_code:
+        DPOP A
+        RPUSH A
+        JMP next
+
+
+; --- R> - pop return stack and push on data stack
+        .dict "R>"
+FROMR:  .word FROMR_code
+FROMR_code:
+        RPOP A
+        DPUSH A
+        JMP next
+
+
+; TODO - RSP@ - need return stack in memory to implement these two
 ; TODO - RSP!
-; TODO - RDROP
+
+
+; --- RDROP - drop top return stack item
+        .dict "RDROP"
+RDROP:  .word RDROP_code
+RDROP_code:
+        RPOP A
+        JMP next
+
+
+; --- R@ - copy from return stack to data stack - ( -- x ) ( R: x -- x )
+        .dict "R@"
+RCOPY:  .word RCOPY_code
+RCOPY_code:
+        RPOP A
+        RPUSH A
+        DPUSH A
+        JMP next
 
 
 
@@ -394,7 +427,7 @@ F_HIDDEN_code:
 ; Data Stack
 ; -------------------------------------------------------------------
 
-; TODO - DSP@
+; TODO - DSP@ - need data (parameter) stack in memory to implement these two
 ; TODO - DSP!
 
 
@@ -795,10 +828,10 @@ BRANCH_code:
 ; --- QUIT
         .dict "QUIT"
 QUIT:   .word DOCOL             ; codeword - the interpreter
-        .word CSTACK
+        ; .word CSTACK
         .word INTERPRET
         .word BRANCH
-        .word $-6
+        .word $-4
 
 
 ; --- INTERPRET
@@ -925,20 +958,32 @@ CSTACK_code:
         JMP next
 
 
-; -- DOT-S (hack version for debugging) - TODO - replace this with a real version
+; --- DOT-S (hack version for debugging) - TODO - replace this with a real version
         .dict ".S"
         .word DOTS_code
 DOTS_code:
-        PSTACK
+        LDW A, (var_BASE)
+        PSTACK A
         JMP next
 
 
-; -- DOT (hack version for debugging) - TODO - replace this with a real version
+; --- DOT-R (hack version for debugging) - TODO - remove this?
+        .dict ".R"
+        .word DOTR_code
+DOTR_code:
+        LDW A, (var_BASE)
+        PRSTACK A
+        JMP next
+
+
+; --- DOT (hack version for debugging) - TODO - replace this with a real version
         .dict "."
         .word DOT_code
 DOT_code:
-        DPOP A
-        PUTN A
+        LDW A, B
+        LDW A, (var_BASE)
+        DPOP B
+        PUTN B, A
         LDW A, $A               ; CR
         PUTC A
         JMP next

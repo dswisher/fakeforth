@@ -643,14 +643,6 @@ void execute_jump(Simulator *sim, unsigned char mode, bool (*condition)(Simulato
 }
 
 
-unsigned short get_base(Simulator *sim)
-{
-    unsigned short addr;
-    sim_lookup_symbol(sim, "var_BASE", &addr);
-    return sim_read_word(sim, addr);
-}
-
-
 void print_stack_minion(char *buf, StackNode *node, unsigned short base)
 {
     if (node == NULL)
@@ -667,11 +659,10 @@ void print_stack_minion(char *buf, StackNode *node, unsigned short base)
 }
 
 
-void print_stack(Simulator *sim)
+void print_stack(StackNode *top, unsigned short base)
 {
     // Print the stack
     char buf[MAXCHAR];
-    StackNode *top = sim->data_stack;
 
     if (top == NULL)
     {
@@ -679,16 +670,15 @@ void print_stack(Simulator *sim)
         return;
     }
 
-    print_stack_minion(buf, top, get_base(sim));
+    print_stack_minion(buf, top, base);
 
     fputs("\n", stdout);
 }
 
 
-void print_number(Simulator *sim, short num)
+void print_number(Simulator *sim, short num, unsigned short base)
 {
     char buf[MAXCHAR];
-    unsigned short base = get_base(sim);
     my_itoa(num, buf, base);
     fputs(buf, stdout);
 }
@@ -732,6 +722,8 @@ void sim_step_into(Simulator *sim)
 
     unsigned char opcode = sim->memory[sim->pc++];
     unsigned char reg;
+    unsigned char reg1;
+    unsigned char reg2;
     unsigned short addr;
 
     unsigned char code = opcode & ~0x03;
@@ -870,12 +862,19 @@ void sim_step_into(Simulator *sim)
             break;
 
         case OP_PUTN:       // TODO - a bit of a hack
-            reg = sim->memory[sim->pc++];
-            print_number(sim, get_register(sim, reg));
+            reg1 = sim->memory[sim->pc++];  // number
+            reg2 = sim->memory[sim->pc++];  // base
+            print_number(sim, get_register(sim, reg1), get_register(sim, reg2));
             break;
 
         case OP_PSTACK:     // TODO - a hack to quickly implement .S
-            print_stack(sim);
+            reg = sim->memory[sim->pc++];
+            print_stack(sim->data_stack, get_register(sim, reg));
+            break;
+
+        case OP_PRSTACK:    // TODO - a hack to quickly implement .R
+            reg = sim->memory[sim->pc++];
+            print_stack(sim->return_stack, get_register(sim, reg));
             break;
 
         case OP_CALL:
@@ -1070,12 +1069,14 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_RPUSH:
         case OP_DPOP:
         case OP_RPOP:
+        case OP_PSTACK:
+        case OP_PRSTACK:
         case OP_INC:
         case OP_DEC:
         case OP_NEG:
-        case OP_PSTACK:
         case OP_PUTC:
         case OP_PUTS:
+        case OP_PUTN:
         case OP_ADD:
         case OP_AND:
         case OP_NOT:
@@ -1097,6 +1098,11 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
     // Handle the second argument
     switch (code)
     {
+        case OP_PUTN:
+            strcat(buf, ", ");
+            disassemble_register(sim, buf, addr);
+            break;
+
         case OP_LDW:
         case OP_LDB:
         case OP_STW:

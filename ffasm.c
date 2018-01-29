@@ -45,9 +45,10 @@ ArgCount arg_counts[] =
     { OP_NEG, 1 },
     { OP_GETC, 1 },
     { OP_PUTC, 1 },
-    { OP_PUTN, 1 },
+    { OP_PUTN, 2 },
     { OP_PUTS, 1 },
-    { OP_PSTACK, 0 },
+    { OP_PSTACK, 1 },
+    { OP_PRSTACK, 1 },
     { OP_DCLR, 0 },
     { OP_RCLR, 0 },
     { OP_BRK, 0 },
@@ -818,6 +819,8 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_PUTC:
         case OP_PUTN:
         case OP_PUTS:
+        case OP_PSTACK:
+        case OP_PRSTACK:
         case OP_ADD:
         case OP_NOT:
         case OP_AND:
@@ -848,6 +851,13 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_SUB:
         case OP_CMP:
             if (!add_by_mode(context, mode, argv[2]))
+            {
+                return FALSE;
+            }
+            break;
+
+        case OP_PUTN:
+            if (!add_register(context, argv[2]))
             {
                 return FALSE;
             }

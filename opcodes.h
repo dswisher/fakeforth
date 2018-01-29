@@ -42,6 +42,7 @@
 #define OP_OR       OPCODE(35)
 #define OP_XOR      OPCODE(36)
 #define OP_NOT      OPCODE(37)
+#define OP_PRSTACK  OPCODE(38)
 
 #define OP_HLT      OPCODE(63)
 
