@@ -7,8 +7,7 @@
   * Put data stack and return stack in memory, then implement `RSP@`, `RSP!`, `DSP@` and `DSP!`
 * Forth
   * Add "ok" prompt or something?
-  * Implement tick word
-  * Implement `CHAR` and `EXECUTE`
+  * Implement `CHAR`
   * Implement `-`, `*` and `/MOD`
   * Implement comparison words (see TODOs in ff.asm)
   * Implement remaining memory words (`+!`, `-!`, etc; see TODOs in ff.asm)
@@ -57,6 +56,8 @@
   * ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~
   * ~~Get rid of GO and replace with JMP with proper address modes~~
 * Forth
+  * ~~Implement tick word~~
+  * ~~Implement `EXECUTE`~~
   * ~~Implement return-stack words: `>R`, `R>`, `RDROP`~~
   * ~~Change hacky DOT and SDOT to pass the BASE to eliminate dependence on symbols~~
   * ~~Implement remaining "easy" forth primitives (see TODOs in ff.asm)~~

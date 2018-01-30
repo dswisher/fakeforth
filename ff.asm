@@ -773,11 +773,11 @@ SEMICOLON:
 IMMEDIATE:
         .word IMMEDIATE_code
 IMMEDIATE_code:
-        DPOP A              ; get the address of the dict entry
-        ADD A, $2           ; skip link pointer
-        LDB B, (A)          ; get the length/flags byte
-        XOR B, F_IMMED      ; flip the bit
-        STB B, (A)          ; and save it back
+        DPOP A                  ; get the address of the dict entry
+        ADD A, $2               ; skip link pointer
+        LDB B, (A)              ; get the length/flags byte
+        XOR B, F_IMMED          ; flip the bit
+        STB B, (A)              ; and save it back
         JMP next
 
 
@@ -785,15 +785,26 @@ IMMEDIATE_code:
         .dict "HIDDEN"
 HIDDEN: .word HIDDEN_code
 HIDDEN_code:
-        DPOP A              ; get the address of the dict entry
-        ADD A, $2           ; skip link pointer
-        LDB B, (A)          ; get the length/flags byte
-        XOR B, F_HIDDEN     ; flip the bit
-        STB B, (A)          ; and save it back
+        DPOP A                  ; get the address of the dict entry
+        ADD A, $2               ; skip link pointer
+        LDB B, (A)              ; get the length/flags byte
+        XOR B, F_HIDDEN         ; flip the bit
+        STB B, (A)              ; and save it back
         JMP next
 
 
-; TODO - `  (tick)
+; --- ' (tick)
+        .dict "'"
+TICK:   .word TICK_code
+TICK_code:
+        CALL _WORD              ; parse the next word
+        CALL _FIND              ; look up the word
+        CMP Z, $0               ; did we find a word?
+        JEQ _TICK_1             ; no, push the zero
+        CALL _TCFA              ; convert dict entry to code address and push that
+_TICK_1:
+        DPUSH Z
+        JMP next
 
 
 
@@ -918,8 +929,14 @@ _INTERP_6:
 ; -------------------------------------------------------------------
 
 ; TODO - CHAR
-; TODO - EXECUTE
 
+
+; --- EXECUTE
+        .dict "EXECUTE"
+EXEC:   .word EXEC_code
+EXEC_code:
+        DPOP A                  ; get the code word...
+        JMP (A)                 ; ...and go there.
 
 
 ; -------------------------------------------------------------------
