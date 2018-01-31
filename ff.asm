@@ -169,16 +169,45 @@ DEC_code:
         .dict "+"
 ADD:    .word ADD_code
 ADD_code:
-        DPOP A
         DPOP B
+        DPOP A
         ADD A, B
         DPUSH A
         JMP next
 
 
-; TODO - -
-; TODO - *
-; TODO - /MOD
+; --- SUB (-)
+        .dict "-"
+SUB:    .word SUB_code
+SUB_code:
+        DPOP B
+        DPOP A
+        SUB A, B
+        DPUSH A
+        JMP next
+
+
+; --- MULT (*)
+        .dict "*"
+MULT:   .word MULT_code
+MULT_code:
+        DPOP B
+        DPOP A
+        MUL A, B
+        DPUSH A
+        JMP next
+
+
+; --- /MOD
+        .dict "/MOD"
+DIVMOD: .word DIVMOD_code
+DIVMOD_code:
+        DPOP B
+        DPOP A
+        DIV A, B
+        DPUSH B
+        DPUSH A
+        JMP next
 
 
 

@@ -39,6 +39,7 @@ NameMap name_map[] =
     { "OR", OP_OR },
     { "XOR", OP_XOR },
     { "MUL", OP_MUL },
+    { "DIV", OP_DIV },
     { "SUB", OP_SUB },
     { "CALL", OP_CALL },
     { "RET", OP_RET },

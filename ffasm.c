@@ -58,6 +58,7 @@ ArgCount arg_counts[] =
     { OP_OR, 2 },
     { OP_XOR, 2 },
     { OP_MUL, 2 },
+    { OP_DIV, 2 },
     { OP_SUB, 2 },
     { OP_CALL, 1 },
     { OP_CMP, 2 },
@@ -827,6 +828,7 @@ bool parse_opcode(Context *context, char *opcode)
         case OP_OR:
         case OP_XOR:
         case OP_MUL:
+        case OP_DIV:
         case OP_SUB:
         case OP_CMP:
             if (!add_register(context, argv[1]))
@@ -857,6 +859,7 @@ bool parse_opcode(Context *context, char *opcode)
             break;
 
         case OP_PUTN:
+        case OP_DIV:
             if (!add_register(context, argv[2]))
             {
                 return FALSE;

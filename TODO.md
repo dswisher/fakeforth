@@ -1,6 +1,7 @@
 ## TODO ##
 
 * Virtual Machine
+  * On stack underflow, don't exit
   * Rather than implementing PUTC, PSTACK, PUTN, GETC, etc., use syscall-type mechanism
   * On reset, clear input buffers
   * Should arith/logic operators (ADD, SUB, AND, etc) set the zero flag?
@@ -8,7 +9,6 @@
 * Forth
   * Add "ok" prompt or something?
   * Implement `CHAR`
-  * Implement `-`, `*` and `/MOD`
   * Implement comparison words (see TODOs in ff.asm)
   * Implement remaining memory words (`+!`, `-!`, etc; see TODOs in ff.asm)
   * Implement remaining built-in constant words: `VERSION`, `R0`, `DOCOL`, `F_IMMED`, `F_LENMASK`
@@ -56,6 +56,7 @@
   * ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~
   * ~~Get rid of GO and replace with JMP with proper address modes~~
 * Forth
+  * ~~Implement `-`, `*` and `/MOD`~~
   * ~~Implement tick word~~
   * ~~Implement `EXECUTE`~~
   * ~~Implement return-stack words: `>R`, `R>`, `RDROP`~~

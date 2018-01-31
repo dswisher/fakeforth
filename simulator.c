@@ -509,6 +509,22 @@ void execute_arithmetic(Simulator *sim, unsigned char mode, unsigned short (*ope
 }
 
 
+void execute_div(Simulator *sim)
+{
+    unsigned char reg1 = sim->memory[sim->pc++];
+    unsigned char reg2 = sim->memory[sim->pc++];
+    
+    unsigned short a = get_register(sim, reg1);
+    unsigned short b = get_register(sim, reg2);
+
+    unsigned short quo = a / b;
+    unsigned short rem = a % b;
+
+    set_register(sim, reg1, quo);
+    set_register(sim, reg2, rem);
+}
+
+
 void do_compare(Simulator *sim, unsigned short val1, unsigned short val2)
 {
     unsigned char equal = (val1 == val2) ? FLAG_EQUAL : 0;
@@ -801,6 +817,10 @@ void sim_step_into(Simulator *sim)
             execute_arithmetic(sim, mode, mul_operation);
             break;
 
+        case OP_DIV:
+            execute_div(sim);
+            break;
+
         case OP_CMP:
             execute_cmp(sim, mode);
             break;
@@ -1083,6 +1103,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_OR:
         case OP_XOR:
         case OP_MUL:
+        case OP_DIV:
         case OP_SUB:
         case OP_CMP:
             strcat(buf, " ");
@@ -1112,6 +1133,7 @@ void disassemble_one(Simulator *sim, unsigned short *addr)
         case OP_OR:
         case OP_XOR:
         case OP_MUL:
+        case OP_DIV:
         case OP_SUB:
         case OP_CMP:
             switch (mode)
