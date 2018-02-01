@@ -334,8 +334,32 @@ FETCH_code:
         JMP next
 
 
-; TODO - +!
-; TODO - -!
+; --- ADDSTORE (+!)
+        .dict "+!"
+ADDSTORE:
+        .word ADDSTORE_code
+ADDSTORE_code:
+        DPOP A                  ; address
+        DPOP B                  ; amount to add
+        LDW C, (A)
+        ADD C, B
+        STW C, (A)
+        JMP next
+
+
+; --- SUBSTORE (-!)
+        .dict "-!"
+SUBSTORE:
+        .word SUBSTORE_code
+SUBSTORE_code:
+        DPOP A                  ; address
+        DPOP B                  ; amount to subtract
+        LDW C, (A)
+        SUB C, B
+        STW C, (A)
+        JMP next
+
+
 ; TODO - C!
 ; TODO - C@
 ; TODO - C@C!
