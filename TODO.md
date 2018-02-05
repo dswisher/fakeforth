@@ -7,9 +7,10 @@
   * Should arith/logic operators (ADD, SUB, AND, etc) set the zero flag?
   * Put data stack and return stack in memory, then implement `RSP@`, `RSP!`, `DSP@` and `DSP!`
 * Forth
+  * BUG: comparison operators with negative numbers do not work right: -3 3 < . -- 0
   * Add "ok" prompt or something?
   * Implement `CHAR`
-  * Implement comparison words (see TODOs in ff.asm)
+  * Implement logical operators: AND, OR, XOR
   * Implement remaining memory words (`+!`, `-!`, etc; see TODOs in ff.asm)
   * Implement remaining built-in constant words: `VERSION`, `R0`, `DOCOL`, `F_IMMED`, `F_LENMASK`
   * Implement `0BRANCH` word
@@ -56,6 +57,7 @@
   * ~~REDO opcodes: 6 bytes for op-code, 2 bytes for address mode~~
   * ~~Get rid of GO and replace with JMP with proper address modes~~
 * Forth
+  * ~~Implement comparison words (see TODOs in ff.asm)~~
   * ~~Implement `-`, `*` and `/MOD`~~
   * ~~Implement tick word~~
   * ~~Implement `EXECUTE`~~

@@ -238,8 +238,8 @@ FALSE_code:
         .dict "="
 EQUAL:  .word EQUAL_code
 EQUAL_code:
-        DPOP A
         DPOP B
+        DPOP A
         CMP A, B
         JEQ TRUE_code
         JMP FALSE_code
@@ -249,22 +249,101 @@ EQUAL_code:
         .dict "<>"
 NEQUAL:  .word NEQUAL_code
 NEQUAL_code:
-        DPOP A
         DPOP B
+        DPOP A
         CMP A, B
         JEQ FALSE_code
         JMP TRUE_code
 
 
-; TODO - <
-; TODO - >
-; TODO - <=
-; TODO - >=
-; TODO - 0=
-; TODO - 0<>
-; TODO - 0<
-; TODO - 0>
-; TODO - 0<=
+; --- LESS (<)
+        .dict "<"
+LESS:   .word LESS_code
+LESS_code:
+        DPOP B
+        DPOP A
+        CMP A, B
+        JLT TRUE_code
+        JMP FALSE_code
+
+
+; --- GREAT (>)
+        .dict ">"
+GREAT:  .word GREAT_code
+GREAT_code:
+        DPOP B
+        DPOP A
+        CMP A, B
+        JGT TRUE_code
+        JMP FALSE_code
+
+
+; --- LESS-EQUAL (<=)
+        .dict "<="
+LTE:    .word LTE_code
+LTE_code:
+        DPOP B
+        DPOP A
+        CMP A, B
+        JLE TRUE_code
+        JMP FALSE_code
+
+
+; --- GREATER-EQUAL (>=)
+        .dict ">="
+GTE:    .word GTE_code
+GTE_code:
+        DPOP B
+        DPOP A
+        CMP A, B
+        JGE TRUE_code
+        JMP FALSE_code
+
+
+; --- ZERO-EQUAL (0=)
+        .dict "0="
+ZEROE:  .word ZEROE_code
+ZEROE_code:
+        DPOP A
+        LDW B, $0
+        CMP A, B
+        JEQ TRUE_code
+        JMP FALSE_code
+
+
+; --- ZERO-NEQUAL (0<>)
+        .dict "0<>"
+ZERON:  .word ZERON_code
+ZERON_code:
+        DPOP A
+        LDW B, $0
+        CMP A, B
+        JEQ FALSE_code
+        JMP TRUE_code
+
+
+; --- ZERO-LESS (0<)
+        .dict "0<"
+ZEROL:  .word ZEROL_code
+ZEROL_code:
+        DPOP A
+        LDW B, $0
+        CMP A, B
+        JLT TRUE_code
+        JMP FALSE_code
+
+
+; --- ZERO-GREAT (0>)
+        .dict "0>"
+ZEROG:  .word ZEROG_code
+ZEROG_code:
+        DPOP A
+        LDW B, $0
+        CMP A, B
+        JGT TRUE_code
+        JMP FALSE_code
+
+
 ; TODO - AND
 ; TODO - OR
 ; TODO - XOR
