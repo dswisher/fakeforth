@@ -490,7 +490,15 @@ STATE_code:
 ; Built-in Constants
 ; -------------------------------------------------------------------
 
-; TODO - VERSION constant
+; --- VERSION constant
+        .dict "VERSION"
+        .word VERSION_code
+VERSION_code:
+        LDW A,$A            ; Arbitrary starting point 
+        DPUSH A
+        JMP next
+
+
 ; TODO - R0 constant
 ; TODO - DOCOL constant
 ; TODO - F_IMMED constant
